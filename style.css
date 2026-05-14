@@ -1,0 +1,919 @@
+:root { /* Define variables globales de CSS */
+    --primary: #2563eb; /* Color azul primario */
+    --primary-hover: #1d4ed8; /* Color azul para hover */
+    --bg-main: #f8fafc; /* Color de fondo principal */
+    --bg-sidebar: #ffffff; /* Color de fondo de la barra lateral */
+    --text-main: #1e293b; /* Color de texto principal (oscuro) */
+    --text-muted: #64748b; /* Color de texto secundario (gris) */
+    --border: #e2e8f0; /* Color de los bordes */
+    --white: #ffffff; /* Color blanco */
+    --success: #10b981; /* Color verde para éxito */
+    --warning: #f59e0b; /* Color naranja para advertencias */
+    --danger: #ef4444; /* Color rojo para errores o peligros */
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* Sombra estándar */
+    --radius: 12px; /* Radio de borde estándar */
+}
+
+* { /* Selector universal para resetear estilos */
+    margin: 0; /* Elimina márgenes por defecto */
+    padding: 0; /* Elimina rellenos por defecto */
+    box-sizing: border-box; /* Incluye bordes y relleno en el tamaño total */
+    font-family: 'Inter', sans-serif; /* Establece la fuente global */
+}
+
+body { /* Estilos para el cuerpo del documento */
+    background-color: var(--bg-main); /* Usa la variable de fondo principal */
+    color: var(--text-main); /* Usa la variable de texto principal */
+    overflow-x: hidden; /* Evita el scroll horizontal */
+}
+
+.hidden { display: none !important; } /* Clase de utilidad para ocultar elementos */
+
+/* Overlay & Login */
+.overlay { /* Estilos para la capa superpuesta del login */
+    position: fixed; /* Posición fija para cubrir toda la pantalla */
+    top: 0; /* Alineado arriba */
+    left: 0; /* Alineado a la izquierda */
+    width: 100%; /* Ancho total */
+    height: 100%; /* Alto total */
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); /* Fondo degradado suave */
+    display: none; /* Oculto por defecto */
+    align-items: center; /* Centra verticalmente el contenido */
+    justify-content: center; /* Centra horizontalmente el contenido */
+    z-index: 1000; /* Asegura que esté sobre otros elementos */
+}
+
+.overlay.active { /* Cuando el overlay tiene la clase active */
+    display: flex; /* Se muestra usando flexbox */
+}
+
+.login-card { /* Estilos para la tarjeta de inicio de sesión */
+    background: var(--white); /* Fondo blanco */
+    padding: 2.5rem; /* Relleno interno */
+    border-radius: var(--radius); /* Bordes redondeados */
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); /* Sombra pronunciada */
+    width: 100%; /* Ancho completo del contenedor */
+    max-width: 400px; /* Ancho máximo de 400px */
+    animation: slideUp 0.5s ease-out; /* Animación de entrada */
+}
+
+@keyframes slideUp { /* Definición de la animación slideUp */
+    from { transform: translateY(20px); opacity: 0; } /* Inicia 20px abajo y transparente */
+    to { transform: translateY(0); opacity: 1; } /* Termina en su posición y opaco */
+}
+
+.login-header { /* Encabezado dentro de la tarjeta de login */
+    text-align: center; /* Texto centrado */
+    margin-bottom: 2rem; /* Espacio inferior */
+}
+
+.login-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.login-logo img {
+    max-width: 200px;
+    height: auto;
+}
+
+.sidebar-logo {
+    max-width: 120px;
+    height: auto;
+}
+
+.logo-icon { /* Icono del logo en el login (kept for compatibility) */
+    font-size: 3rem; 
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.login-header h1 { /* Título h1 del login */
+    font-size: 1.5rem; /* Tamaño de fuente */
+    font-weight: 700; /* Negrita */
+    color: var(--text-main); /* Color de texto principal */
+}
+
+.login-header p { /* Párrafo del encabezado de login */
+    color: var(--text-muted); /* Color de texto suave */
+}
+
+.form-group { /* Grupo de formulario (label + input) */
+    margin-bottom: 1.5rem; /* Espacio entre grupos */
+}
+
+.form-group label { /* Etiquetas de los formularios */
+    display: block; /* Ocupa toda la línea */
+    font-size: 0.875rem; /* Tamaño de fuente pequeño */
+    font-weight: 500; /* Grosor medio */
+    margin-bottom: 0.5rem; /* Espacio antes del input */
+}
+
+.form-group input, .form-group select { /* Estilos comunes para inputs y selects */
+    width: 100%; /* Ancho total */
+    padding: 0.75rem; /* Relleno interno */
+    border: 1px solid var(--border); /* Borde fino */
+    border-radius: 8px; /* Bordes redondeados */
+    font-size: 1rem; /* Tamaño de fuente legible */
+    outline: none; /* Elimina el borde de enfoque por defecto */
+    transition: border-color 0.2s; /* Transición suave al cambiar el borde */
+}
+
+.form-group input:focus { /* Estilo cuando el input tiene el foco */
+    border-color: var(--primary); /* El borde cambia al azul primario */
+}
+
+.btn-primary { /* Estilos para el botón principal */
+    width: 100%; /* Ancho total */
+    padding: 0.75rem; /* Relleno interno */
+    background-color: var(--primary); /* Fondo azul primario */
+    color: white; /* Texto blanco */
+    border: none; /* Sin bordes */
+    border-radius: 8px; /* Bordes redondeados */
+    font-size: 1rem; /* Tamaño de fuente */
+    font-weight: 600; /* Negrita media */
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+    transition: background-color 0.2s; /* Transición suave del color de fondo */
+}
+
+.btn-primary:hover { /* Efecto hover del botón primario */
+    background-color: var(--primary-hover); /* Cambia a un azul más oscuro */
+}
+
+.error-msg { /* Mensaje de error */
+    color: var(--danger); /* Color rojo */
+    font-size: 0.875rem; /* Fuente pequeña */
+    text-align: center; /* Centrado */
+    margin-top: 1rem; /* Margen superior */
+    display: none; /* Oculto por defecto */
+}
+
+.login-footer { /* Pie de la tarjeta de login */
+    margin-top: 2rem; /* Espacio superior */
+    text-align: center; /* Centrado */
+    font-size: 0.75rem; /* Fuente muy pequeña */
+    color: var(--text-muted); /* Color suave */
+}
+
+/* App Layout */
+#app-container { /* Contenedor principal de la aplicación */
+    display: grid; /* Usa grid layout */
+    grid-template-columns: 260px 1fr; /* Columna izquierda de 260px y el resto para la derecha */
+    height: 100vh; /* Ocupa el 100% del alto de la ventana */
+}
+
+/* Sidebar */
+.sidebar { /* Barra lateral */
+    background: var(--bg-sidebar); /* Fondo de la variable sidebar */
+    border-right: 1px solid var(--border); /* Línea divisoria a la derecha */
+    display: flex; /* Usa flexbox */
+    flex-direction: column; /* Alinea hijos en columna */
+    padding: 1.5rem; /* Relleno interno */
+}
+
+.sidebar-brand { /* Sección de marca en el sidebar */
+    display: flex; /* Flexbox */
+    align-items: center; /* Centra items verticalmente */
+    gap: 0.75rem; /* Espacio entre logo y texto */
+    font-size: 1.25rem; /* Tamaño de fuente */
+    font-weight: 700; /* Negrita */
+    color: var(--primary); /* Color primario */
+    margin-bottom: 2.5rem; /* Margen inferior grande */
+}
+
+.sidebar-brand i { font-size: 1.75rem; } /* Tamaño del icono de marca */
+
+.sidebar-nav ul { /* Lista de navegación en el sidebar */
+    list-style: none; /* Elimina viñetas */
+    flex: 1; /* Ocupa el espacio disponible */
+}
+
+.nav-item { /* Items del menú de navegación */
+    display: flex; /* Flexbox */
+    align-items: center; /* Centra verticalmente */
+    gap: 1rem; /* Espacio entre icono y texto */
+    padding: 0.75rem 1rem; /* Relleno */
+    margin-bottom: 0.5rem; /* Separación entre items */
+    border-radius: 8px; /* Redondeado */
+    cursor: pointer; /* Cursor de mano */
+    color: var(--text-muted); /* Texto gris */
+    transition: all 0.2s; /* Transición suave para todos los cambios */
+    position: relative; /* Para posicionar elementos internos si fuera necesario */
+}
+
+.nav-item:hover { /* Efecto hover en items de menú */
+    background: #f1f5f9; /* Fondo gris muy claro */
+    color: var(--text-main); /* Texto cambia a color principal */
+}
+
+.nav-item.active { /* Item de menú actualmente activo */
+    background: #eff6ff; /* Fondo azul muy claro */
+    color: var(--primary); /* Texto azul primario */
+    font-weight: 600; /* Grosor de fuente medio */
+}
+
+.nav-item i { font-size: 1.25rem; } /* Tamaño de iconos del menú */
+
+.badge { /* Pequeño indicador circular para notificaciones */
+    background: var(--danger); /* Fondo rojo */
+    color: white; /* Texto blanco */
+    padding: 2px 6px; /* Relleno */
+    border-radius: 10px; /* Circular */
+    font-size: 0.7rem; /* Texto pequeño */
+    margin-left: auto; /* Empuja el badge a la derecha */
+}
+
+.sidebar-user { /* Sección de usuario en el sidebar */
+    padding-top: 1.5rem; /* Espacio superior */
+    border-top: 1px solid var(--border); /* Línea divisoria superior */
+    display: flex; /* Flexbox */
+    align-items: center; /* Centra verticalmente */
+    justify-content: space-between; /* Espacio entre info y botón logout */
+}
+
+.user-info { /* Contenedor de info de usuario */
+    display: flex; /* Flexbox */
+    align-items: center; /* Centrado vertical */
+    gap: 0.75rem; /* Espacio entre avatar e info */
+}
+
+.user-avatar { /* Círculo del avatar */
+    width: 36px; /* Ancho fijo */
+    height: 36px; /* Alto fijo */
+    background: var(--primary); /* Fondo azul */
+    color: white; /* Letra blanca */
+    border-radius: 50%; /* Forma circular */
+    display: flex; /* Flexbox */
+    align-items: center; /* Centra letra horizontal */
+    justify-content: center; /* Centra letra vertical */
+    font-weight: 700; /* Negrita */
+}
+
+.user-details { /* Contenedor de nombre y rol */
+    display: flex; /* Flexbox */
+    flex-direction: column; /* Columna */
+}
+
+.user-details span { font-weight: 600; font-size: 0.875rem; } /* Nombre del usuario */
+.user-details small { color: var(--text-muted); font-size: 0.75rem; text-transform: capitalize; } /* Rol del usuario */
+
+#logout-btn { /* Botón de salida */
+    background: transparent; /* Sin fondo */
+    border: none; /* Sin bordes */
+    color: var(--text-muted); /* Color gris */
+    font-size: 1.25rem; /* Tamaño del icono */
+    cursor: pointer; /* Cursor mano */
+    transition: color 0.2s; /* Suavidad al cambiar color */
+}
+
+#logout-btn:hover { color: var(--danger); } /* Rojo al pasar el ratón */
+
+/* Main Content */
+.main-content { /* Área principal */
+    overflow-y: auto; /* Scroll vertical si es necesario */
+    padding: 2rem; /* Relleno de 32px */
+    display: flex; /* Flexbox */
+    flex-direction: column; /* Organiza secciones en columna */
+    gap: 2rem; /* Separación de 32px entre secciones */
+}
+
+.top-bar { /* Barra superior del área principal */
+    display: flex; /* Flexbox */
+    justify-content: space-between; /* Título a izquierda, acciones a derecha */
+    align-items: center; /* Centrado vertical */
+}
+
+.top-bar h2 { font-size: 1.5rem; font-weight: 700; } /* Título de la vista */
+
+.top-bar-actions { /* Contenedor de búsqueda y tema */
+    display: flex; /* Flexbox */
+    align-items: center; /* Centrado vertical */
+    gap: 1.5rem; /* Separación entre elementos */
+}
+
+.search-box { /* Caja contenedora de búsqueda */
+    position: relative; /* Para posicionar el icono absolutamente */
+    width: 300px; /* Ancho fijo */
+}
+
+.search-box i { /* Icono de lupa */
+    position: absolute; /* Posición absoluta */
+    left: 12px; /* A 12px del borde izquierdo */
+    top: 50%; /* Al centro vertical */
+    transform: translateY(-50%); /* Ajuste fino de centrado vertical */
+    color: var(--text-muted); /* Color gris */
+}
+
+.search-box input { /* Input de búsqueda */
+    width: 100%; /* Ocupa todo el contenedor */
+    padding: 0.6rem 1rem 0.6rem 2.5rem; /* Relleno con espacio para el icono a la izquierda */
+    border: 1px solid var(--border); /* Borde suave */
+    border-radius: 8px; /* Redondeado */
+    outline: none; /* Sin borde de enfoque feo */
+}
+
+.btn-icon { /* Botones circulares con icono */
+    background: white; /* Fondo blanco */
+    border: 1px solid var(--border); /* Borde suave */
+    width: 40px; /* Ancho fijo */
+    height: 40px; /* Alto fijo */
+    border-radius: 8px; /* Redondeado */
+    cursor: pointer; /* Cursor mano */
+    display: flex; /* Flexbox */
+    align-items: center; /* Centrado horizontal */
+    justify-content: center; /* Centrado vertical */
+    font-size: 1.25rem; /* Tamaño icono */
+    color: var(--text-muted); /* Color icono gris */
+}
+
+/* Dashboard Stats */
+.stats-grid { /* Cuadrícula de tarjetas de estadísticas */
+    display: grid; /* Grid layout */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adaptable, mínimo 200px por tarjeta */
+    gap: 1.5rem; /* Separación entre tarjetas */
+}
+
+.stat-card { /* Tarjeta de estadística individual */
+    background: white; /* Fondo blanco */
+    padding: 1.5rem; /* Relleno interno */
+    border-radius: var(--radius); /* Bordes redondeados */
+    box-shadow: var(--shadow); /* Sombra suave */
+    display: flex; /* Flexbox */
+    align-items: center; /* Centrado vertical */
+    gap: 1.25rem; /* Separación icono - texto */
+}
+
+.stat-icon { /* Contenedor del icono en la tarjeta */
+    width: 48px; /* Tamaño fijo */
+    height: 48px; /* Tamaño fijo */
+    border-radius: 12px; /* Redondeado suave */
+    display: flex; /* Flexbox */
+    align-items: center; /* Centrado vertical */
+    justify-content: center; /* Centrado horizontal */
+    font-size: 1.5rem; /* Tamaño icono */
+}
+
+.stat-icon.blue { background: #eff6ff; color: #3b82f6; } /* Variante azul */
+.stat-icon.green { background: #ecfdf5; color: #10b981; } /* Variante verde */
+.stat-icon.orange { background: #fff7ed; color: #f59e0b; } /* Variante naranja */
+.stat-icon.red { background: #fef2f2; color: #ef4444; } /* Variante roja */
+
+.stat-data h3 { font-size: 1.5rem; font-weight: 700; } /* Número de la estadística */
+.stat-data p { color: var(--text-muted); font-size: 0.875rem; } /* Etiqueta de la estadística */
+
+/* Tables & Cards */
+.recent-grid { /* Cuadrícula para tablas recientes */
+    display: grid; /* Grid layout */
+    grid-template-columns: 2fr 1fr; /* Columna izquierda doble que la derecha */
+    gap: 1.5rem; /* Espacio entre columnas */
+}
+
+.content-card { /* Tarjeta contenedora de tablas o listas */
+    background: white; /* Fondo blanco */
+    border-radius: var(--radius); /* Redondeado */
+    box-shadow: var(--shadow); /* Sombra */
+    overflow: hidden; /* Corta contenido que sobresalga */
+}
+
+.card-header { /* Cabecera de la tarjeta de contenido */
+    padding: 1.25rem 1.5rem; /* Relleno */
+    border-bottom: 1px solid var(--border); /* Línea inferior */
+    display: flex; /* Flexbox */
+    justify-content: space-between; /* Título izquierda, botón derecha */
+    align-items: center; /* Centrado vertical */
+}
+
+.card-header h3 { font-size: 1.1rem; font-weight: 600; } /* Título de la tarjeta */
+
+.btn-text { /* Botones que parecen solo texto */
+    background: transparent; /* Sin fondo */
+    border: none; /* Sin bordes */
+    color: var(--primary); /* Azul primario */
+    font-weight: 600; /* Negrita */
+    cursor: pointer; /* Mano */
+    font-size: 0.875rem; /* Pequeño */
+}
+
+.table-responsive { /* Contenedor para hacer tablas desplazables lateralmente */
+    width: 100%; /* Ancho completo */
+    overflow-x: auto; /* Scroll horizontal si es necesario */
+}
+
+table { /* Estilos para tablas */
+    width: 100%; /* Ancho completo */
+    border-collapse: collapse; /* Une bordes de celdas */
+}
+
+th { /* Encabezados de tabla */
+    text-align: left; /* Alineado a la izquierda */
+    padding: 1rem 1.5rem; /* Relleno */
+    background: #f8fafc; /* Fondo gris muy claro */
+    font-size: 0.75rem; /* Texto pequeño */
+    text-transform: uppercase; /* Todo mayúsculas */
+    letter-spacing: 0.05em; /* Espaciado entre letras */
+    color: var(--text-muted); /* Color gris */
+}
+
+td { /* Celdas de datos */
+    padding: 1rem 1.5rem; /* Relleno */
+    border-bottom: 1px solid var(--border); /* Línea inferior suave */
+    font-size: 0.875rem; /* Tamaño estándar legible */
+}
+
+tr:hover td { background: #fcfdfe; } /* Cambio de fondo al pasar por la fila */
+
+.status-pill { /* Píldoras de estado (etiquetas redondeadas) */
+    padding: 4px 10px; /* Relleno interno */
+    border-radius: 20px; /* Muy redondeado */
+    font-size: 0.75rem; /* Pequeño */
+    font-weight: 600; /* Negrita */
+}
+
+.status-pill.disponible { background: #ecfdf5; color: #065f46; } /* Verde suave */
+.status-pill.prestado { background: #fff7ed; color: #9a3412; } /* Naranja suave */
+.status-pill.reservado { background: #eff6ff; color: #1e40af; } /* Azul suave */
+.status-pill.activo { background: #f0fdf4; color: #166534; } /* Otro verde */
+.status-pill.devuelto { background: #f1f5f9; color: #475569; } /* Gris suave */
+.status-pill.retrasado { background: #fef2f2; color: #991b1b; } /* Rojo suave */
+.status-pill.pendiente { background: #fffbeb; color: #92400e; } /* Amarillento */
+
+/* Modals */
+.modal-overlay { /* Fondo oscuro tras los modales */
+    position: fixed; /* Fijo sobre todo */
+    top: 0; /* Arriba */
+    left: 0; /* Izquierda */
+    width: 100%; /* Todo el ancho */
+    height: 100%; /* Todo el alto */
+    background: rgba(0, 0, 0, 0.5); /* Negro con 50% transparencia */
+    display: none; /* Oculto por defecto */
+    align-items: center; /* Centra modal vertical */
+    justify-content: center; /* Centra modal horizontal */
+    z-index: 2000; /* Muy por encima */
+    backdrop-filter: blur(4px); /* Difumina lo que hay detrás */
+}
+
+.modal-overlay.active { display: flex; } /* Se muestra si tiene active */
+
+.modal-content { /* El cuadro blanco del modal */
+    background: white; /* Fondo blanco */
+    padding: 2rem; /* Relleno */
+    border-radius: var(--radius); /* Redondeado */
+    width: 100%; /* Adaptable */
+    max-width: 500px; /* Máximo 500px */
+    animation: zoomIn 0.3s ease-out; /* Animación de zoom */
+}
+
+@keyframes zoomIn { /* Definición animación zoomIn */
+    from { transform: scale(0.9); opacity: 0; } /* Inicia pequeño y transparente */
+    to { transform: scale(1); opacity: 1; } /* Termina tamaño real y opaco */
+}
+
+.modal-header { /* Cabecera del modal */
+    display: flex; /* Flexbox */
+    justify-content: space-between; /* Título y botón X en extremos */
+    align-items: center; /* Centrado vertical */
+    margin-bottom: 1.5rem; /* Margen inferior */
+}
+
+.btn-close { /* Botón de cerrar del modal (la X) */
+    background: transparent; /* Sin fondo */
+    border: none; /* Sin bordes */
+    font-size: 1.5rem; /* Grande */
+    cursor: pointer; /* Mano */
+    color: var(--text-muted); /* Gris */
+}
+
+.modal-actions { /* Botones de acción al final del modal */
+    display: flex; /* Flexbox */
+    gap: 1rem; /* Separación */
+    justify-content: flex-end; /* Alineados a la derecha */
+    margin-top: 2rem; /* Margen superior */
+}
+
+.btn-secondary { /* Botón secundario (cancelar) */
+    padding: 0.75rem 1.5rem; /* Relleno */
+    background: #f1f5f9; /* Gris muy claro */
+    color: var(--text-main); /* Texto oscuro */
+    border: none; /* Sin bordes */
+    border-radius: 8px; /* Redondeado */
+    font-weight: 600; /* Negrita */
+    cursor: pointer; /* Mano */
+}
+
+/* Action Buttons */
+.actions-cell { /* Contenedor de botones en celdas de tabla */
+    display: flex; /* Flexbox */
+    gap: 0.5rem; /* Separación mínima */
+}
+
+.btn-action { /* Botones pequeños de acción en tablas */
+    width: 32px; /* Tamaño fijo */
+    height: 32px; /* Tamaño fijo */
+    border-radius: 6px; /* Redondeado */
+    border: 1px solid var(--border); /* Borde suave */
+    background: white; /* Blanco */
+    display: flex; /* Flexbox */
+    align-items: center; /* Centrado */
+    justify-content: center; /* Centrado */
+    cursor: pointer; /* Mano */
+    transition: all 0.2s; /* Suavidad */
+}
+
+.btn-action:hover { background: #f8fafc; border-color: var(--primary); color: var(--primary); } /* Azul al pasar el ratón */
+.btn-action.delete:hover { border-color: var(--danger); color: var(--danger); } /* Rojo al borrar */
+.btn-action.approve:hover { border-color: var(--success); color: var(--success); } /* Verde al aprobar */
+
+/* Responsive */
+@media (max-width: 1024px) { /* Tablet o pantallas pequeñas */
+    #app-container { grid-template-columns: 80px 1fr; } /* Sidebar colapsado a 80px */
+    .sidebar-brand span, .nav-item span, .user-details { display: none; } /* Oculta textos */
+    .sidebar { padding: 1rem 0.5rem; align-items: center; } /* Compacta sidebar */
+    .sidebar-brand { justify-content: center; margin-bottom: 2rem; } /* Centra logo */
+    .nav-item { justify-content: center; padding: 0.75rem; } /* Centra iconos de menú */
+    .sidebar-user { flex-direction: column; gap: 1rem; } /* Apila info usuario */
+}
+
+@media (max-width: 768px) { /* Móviles */
+    .recent-grid { grid-template-columns: 1fr; } /* Una sola columna en el dashboard */
+    .search-box { width: 100%; } /* Búsqueda ocupa todo el ancho */
+}
+
+/* View Control */
+.view { display: none; animation: fadeIn 0.4s ease; } /* Secciones ocultas por defecto con animación */
+.view.active { display: block; } /* Solo se muestra la sección activa */
+
+@keyframes fadeIn { 
+    from { opacity: 0; } 
+    to { opacity: 1; } 
+}
+
+/* Missing UI Styles for Catalog */
+.view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.filter-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.search-wrap-sm {
+    position: relative;
+    width: 250px;
+}
+
+.search-wrap-sm i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.search-wrap-sm input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+    font-size: 0.875rem;
+}
+
+#cat-cat-filter {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    outline: none;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.realtime-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--success);
+    background: #ecfdf5;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+}
+
+.rt-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* ===== Mis Pedidos: Botón completar y estados ===== */
+.status-pill.completada {
+    background: #ecfdf5;
+    color: #065f46;
+}
+
+.btn-completar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 6px 14px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-completar:hover {
+    background: #10b981;
+    color: #ffffff;
+    border-color: #10b981;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25);
+}
+
+.btn-completar i {
+    font-size: 1rem;
+}
+
+.check-done {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #10b981;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.check-done i {
+    font-size: 1.1rem;
+}
+
+/* Fila atenuada cuando la reserva está completada */
+tr.row-completada td {
+    opacity: 0.6;
+}
+
+/* ===== CARRITO DE PEDIDOS ===== */
+.cart-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.35);
+    z-index: 900;
+    backdrop-filter: blur(3px);
+}
+
+.cart-panel {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    max-width: 100vw;
+    height: 100vh;
+    background: white;
+    box-shadow: -6px 0 30px rgba(0,0,0,0.15);
+    z-index: 950;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cart-panel.open {
+    right: 0;
+}
+
+.cart-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+}
+
+.cart-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+}
+
+.cart-header h3 i { font-size: 1.3rem; }
+
+.cart-header button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    line-height: 1;
+    transition: color 0.15s;
+}
+.cart-header button:hover { color: var(--danger); }
+
+.cart-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cart-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 3rem 1rem;
+    font-size: 0.9rem;
+    line-height: 1.8;
+}
+
+.cart-empty i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #cbd5e1;
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    animation: fadeIn 0.2s ease;
+}
+
+.cart-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.cart-item-title {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cart-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cart-qty-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.15s;
+    color: var(--text-main);
+}
+
+.cart-qty-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.cart-qty {
+    font-weight: 700;
+    font-size: 1rem;
+    min-width: 28px;
+    text-align: center;
+}
+
+.cart-remove {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+}
+
+.cart-remove:hover {
+    background: #fef2f2;
+    color: var(--danger);
+}
+
+.cart-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background: #f8fafc;
+}
+
+.cart-footer .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.875rem;
+}
+
+.cart-summary {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin: 0;
+    text-align: center;
+}
+
+/* Botón flotante del carrito */
+.cart-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 800;
+    transition: all 0.2s ease;
+}
+
+.cart-fab:hover {
+    transform: scale(1.1) translateY(-2px);
+    background: var(--primary-hover);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5);
+}
+
+.cart-count {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    background: var(--danger);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid white;
+}

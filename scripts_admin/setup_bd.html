@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Setup Base de Datos - Biblioteca</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="../firebase-config.js"></script>
+</head>
+<body class="p-8 bg-gray-50 text-gray-800">
+    <div class="max-w-xl mx-auto bg-white p-6 rounded shadow border border-gray-200">
+        <h1 class="text-2xl font-bold mb-4 flex items-center">
+            <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+            Crear Estructura en Firebase
+        </h1>
+        <p class="mb-4 text-sm text-gray-600">Este script inyectará un par de libros de prueba con sus campos correspondientes directamente en la colección <strong>"biblioteca"</strong> (incluyendo el documento "libro" de tu imagen) para que puedas verlos en Firebase y probarlos.</p>
+        
+        <button id="btn-crear" onclick="crearEstructura()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition font-medium w-full">Crear Libros en la BD</button>
+        <p id="mensaje" class="mt-4 font-bold text-center"></p>
+    </div>
+
+    <script src="setup_bd.js"></script>
+</body>
+</html>
