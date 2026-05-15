@@ -3,261 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BiblioTech - Gestión de Biblioteca</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Catálogo de Libros | Biblioteca Municipal de Algeciras</title>
+    <meta name="description" content="Consulta en tiempo real el catálogo de libros disponibles en la Biblioteca Municipal de Algeciras. Sin registro necesario.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
     <script src="firebase-config.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #0f172a;
+            --blue: #1e40af;
+            --accent: #3b82f6;
+            --green: #10b981;
+            --red: #ef4444;
+            --amber: #f59e0b;
+            --bg: #f0f4f8;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        /* ── HEADER ── */
+        .site-header {
+            background: linear-gradient(135deg, var(--navy) 0%, #1e3a8a 100%);
+            color: #fff;
+            padding: 0 2rem;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        .header-inner {
+            max-width: 1400px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 1rem; padding: 1rem 0;
+        }
+        .header-brand { display: flex; align-items: center; gap: 0.75rem; }
+        .header-brand img { height: 40px; filter: brightness(0) invert(1); }
+        .header-brand h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
+        .header-brand p { font-size: 0.75rem; color: #93c5fd; margin-top: 2px; }
+        .live-badge {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+        }
+        .live-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+
+        /* ── STATS BAR ── */
+        .stats-bar {
+            background: var(--navy);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding: 0.6rem 2rem;
+        }
+        .stats-bar-inner {
+            max-width: 1400px; margin: 0 auto;
+            display: flex; gap: 2rem;
+        }
+        .stat-chip { font-size: 0.78rem; color: #93c5fd; display: flex; align-items: center; gap: 0.4rem; }
+        .stat-chip strong { color: #fff; }
+
+        /* ── FILTERS ── */
+        .filters-section { max-width: 1400px; margin: 2rem auto 1.5rem; padding: 0 2rem; }
+        .filters-wrap {
+            background: var(--card); border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;
+        }
+        .search-box {
+            flex: 1; min-width: 200px;
+            display: flex; align-items: center; gap: 0.5rem;
+            background: var(--bg); border: 1.5px solid var(--border);
+            border-radius: 10px; padding: 0.6rem 1rem;
+            transition: border-color 0.2s;
+        }
+        .search-box:focus-within { border-color: var(--accent); }
+        .search-box i { color: var(--muted); font-size: 1.2rem; }
+        .search-box input { border: none; background: none; outline: none; font-size: 0.9rem; color: var(--text); width: 100%; font-family: inherit; }
+        .cat-filter {
+            border: 1.5px solid var(--border); border-radius: 10px;
+            padding: 0.6rem 1rem; font-size: 0.9rem; font-family: inherit;
+            background: var(--bg); color: var(--text); cursor: pointer; outline: none;
+            transition: border-color 0.2s;
+        }
+        .cat-filter:focus { border-color: var(--accent); }
+        .filter-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .pill {
+            padding: 0.35rem 0.85rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600;
+            border: 1.5px solid var(--border); background: var(--bg); color: var(--muted);
+            cursor: pointer; transition: all 0.15s;
+        }
+        .pill:hover, .pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* ── GRID ── */
+        .books-section { max-width: 1400px; margin: 0 auto; padding: 0 2rem 3rem; }
+        .section-heading {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+        .section-heading h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.25rem;
+        }
+
+        /* ── CARD ── */
+        .book-card {
+            background: var(--card); border-radius: 14px; overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .book-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.1); }
+        .book-cover {
+            width: 100%; height: 220px; overflow: hidden;
+            background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .book-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .book-cover-placeholder { font-size: 3.5rem; color: #cbd5e1; }
+        .book-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+        .book-title { font-size: 0.95rem; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .book-author { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+        .book-meta { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 10px; }
+        .badge {
+            font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+        }
+        .badge-cat { background: #eff6ff; color: var(--blue); }
+        .badge-age { background: #f0fdf4; color: #166534; }
+        .book-synopsis { font-size: 0.78rem; color: var(--muted); line-height: 1.5; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 0.75rem; }
+        .book-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid var(--border); margin-top: auto; }
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+        }
+        .status-available { background: #dcfce7; color: #166534; }
+        .status-out { background: #fee2e2; color: #991b1b; }
+        .stock-info { font-size: 0.72rem; color: var(--muted); }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            grid-column: 1/-1; text-align: center; padding: 4rem 2rem;
+            color: var(--muted);
+        }
+        .empty-state i { font-size: 4rem; display: block; margin-bottom: 1rem; color: #cbd5e1; }
+        .empty-state h3 { font-size: 1.2rem; color: var(--text); margin-bottom: 0.5rem; }
+
+        /* ── LOADING ── */
+        .loading-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 1.25rem; }
+        .skeleton { background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+        .sk-img { height: 220px; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+        .sk-body { padding: 1rem; }
+        .sk-line { height: 12px; background: #f1f5f9; border-radius: 6px; margin-bottom: 8px; animation: shimmer 1.4s infinite; }
+        .sk-line.short { width: 60%; }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+        /* ── FOOTER ── */
+        .site-footer {
+            background: var(--navy); color: #64748b;
+            text-align: center; padding: 1.5rem;
+            font-size: 0.8rem; margin-top: 2rem;
+        }
+        .site-footer a { color: #93c5fd; text-decoration: none; }
+
+        @media (max-width: 640px) {
+            .header-inner { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .books-grid { grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); }
+        }
+    </style>
 </head>
 <body>
 
-<!-- ===== LOGIN ===== -->
-<div id="login-screen" class="overlay active">
-    <div class="login-bg">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-    </div>
-    <div class="login-card">
-        <div class="login-header">
-            <div class="login-logo">
-                <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Ayuntamiento de Algeciras">
+<!-- HEADER -->
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-brand">
+            <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Ayuntamiento de Algeciras">
+            <div>
+                <h1>BiblioTech · Catálogo</h1>
+                <p>Biblioteca Municipal de Algeciras</p>
             </div>
-            <h1>BiblioTech</h1>
-            <p>Accede con tu cuenta</p>
         </div>
-        <form id="login-form">
-            <div id="dynamic-login-fields"></div>
-            <div id="login-error" class="error-msg hidden"></div>
-            <button type="submit" class="btn-primary full-w" id="login-btn">
-                <span id="login-btn-text">Iniciar Sesión</span>
-                <span id="login-spinner" class="btn-spinner hidden"></span>
-            </button>
-        </form>
-        <div class="login-footer">
-            <span class="role-chip"><i class='bx bxs-shield'></i> Admin</span>
-            <span class="role-chip"><i class='bx bxs-school'></i> Colegio</span>
+        <div class="live-badge">
+            <span class="live-dot"></span> Actualizado en tiempo real
+        </div>
+    </div>
+</header>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+    <div class="stats-bar-inner">
+        <div class="stat-chip"><i class='bx bx-book'></i> <strong id="stat-total">–</strong> títulos en catálogo</div>
+        <div class="stat-chip"><i class='bx bx-check-circle'></i> <strong id="stat-disp">–</strong> disponibles ahora</div>
+        <div class="stat-chip"><i class='bx bx-x-circle'></i> <strong id="stat-agot">–</strong> agotados</div>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-section">
+    <div class="filters-wrap">
+        <div class="search-box">
+            <i class='bx bx-search'></i>
+            <input type="text" id="search-input" placeholder="Buscar por título, autor, editorial…" autocomplete="off">
+        </div>
+        <select class="cat-filter" id="cat-filter">
+            <option value="">Todas las categorías</option>
+        </select>
+        <div class="filter-pills">
+            <button class="pill active" data-filter="all">Todos</button>
+            <button class="pill" data-filter="available">Disponibles</button>
+            <button class="pill" data-filter="out">Agotados</button>
         </div>
     </div>
 </div>
 
-<!-- ===== APP ===== -->
-<div id="app-container" class="hidden">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Algeciras" class="sidebar-logo">
-            <span>BiblioTech</span>
-        </div>
-
-        <!-- Admin Nav -->
-        <nav class="sidebar-nav hidden" id="admin-nav">
-            <p class="nav-section-label">Administración</p>
-            <ul>
-                <li class="nav-item active" data-view="dashboard"><i class='bx bxs-dashboard'></i><span>Dashboard</span></li>
-                <li class="nav-item" data-view="inventario"><i class='bx bxs-book'></i><span>Inventario</span></li>
-                <li class="nav-item" data-view="pedidos">
-                    <i class='bx bxs-bell'></i><span>Pedidos</span>
-                    <span class="nav-badge hidden" id="pedidos-badge">0</span>
-                </li>
-                <li class="nav-item" data-view="colegios"><i class='bx bxs-school'></i><span>Colegios</span></li>
-            </ul>
-        </nav>
-
-        <!-- School Nav -->
-        <nav class="sidebar-nav hidden" id="school-nav">
-            <p class="nav-section-label">Mi Panel</p>
-            <ul>
-                <li class="nav-item active" data-view="dashboard"><i class='bx bxs-dashboard'></i><span>Dashboard</span></li>
-                <li class="nav-item" data-view="catalogo"><i class='bx bxs-book-open'></i><span>Catálogo</span></li>
-                <li class="nav-item" data-view="mis-pedidos"><i class='bx bxs-time-five'></i><span>Mis Pedidos</span></li>
-            </ul>
-        </nav>
-
-        <div class="sidebar-user">
-            <div class="user-info">
-                <div class="user-avatar" id="user-avatar-char">U</div>
-                <div class="user-details">
-                    <span id="current-user-name">–</span>
-                    <small id="current-user-role">–</small>
-                </div>
-            </div>
-            <button id="logout-btn" title="Cerrar Sesión"><i class='bx bx-log-out'></i></button>
-        </div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main-content">
-        <header class="top-bar">
-            <div class="top-bar-left">
-                <button class="menu-toggle" id="menu-toggle"><i class='bx bx-menu'></i></button>
-                <h2 id="view-title">Dashboard</h2>
-            </div>
-            <div class="top-bar-right">
-                <div class="realtime-pill"><span class="rt-dot"></span>En vivo</div>
-                <div class="search-box">
-                    <i class='bx bx-search'></i>
-                    <input type="text" id="global-search" placeholder="Buscar...">
-                </div>
-            </div>
-        </header>
-
-        <div id="content-area">
-
-            <!-- DASHBOARD -->
-            <section id="view-dashboard" class="view active">
-                <div class="stats-grid" id="dashboard-stats"></div>
-                <div class="recent-grid">
-                    <div class="content-card">
-                        <div class="card-header"><h3>Actividad Reciente</h3></div>
-                        <div id="recent-inventory-list" class="activity-list"></div>
-                    </div>
-                    <div class="content-card">
-                        <div class="card-header"><h3>Pedidos Recientes</h3></div>
-                        <div id="recent-pedidos-list" class="activity-list"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ADMIN: INVENTARIO -->
-            <section id="view-inventario" class="view">
-                <div class="view-header">
-                    <div class="filter-bar">
-                        <div class="search-wrap-sm">
-                            <i class='bx bx-search'></i>
-                            <input type="text" id="inv-search" placeholder="Buscar libros...">
-                        </div>
-                        <select id="inv-cat-filter"><option value="">Todas las categorías</option></select>
-                    </div>
-                    <button class="btn-primary" id="add-book-btn"><i class='bx bx-plus'></i> Nuevo Libro</button>
-                </div>
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="inventario-table">
-                            <thead><tr>
-                                <th>Título</th><th>Autor</th><th>Categoría</th>
-                                <th>Total</th><th>Disponibles</th><th>Estado</th><th>Acciones</th>
-                            </tr></thead>
-                            <tbody id="inventario-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ADMIN: PEDIDOS -->
-            <section id="view-pedidos" class="view">
-                <div class="view-header">
-                    <div class="filter-tabs" id="pedidos-tabs">
-                        <button class="ftab active" data-f="all">Todos</button>
-                        <button class="ftab" data-f="pending">Pendientes</button>
-                        <button class="ftab" data-f="approved">Aprobados</button>
-                        <button class="ftab" data-f="rejected">Rechazados</button>
-                        <button class="ftab" data-f="returned">Devueltos</button>
-                    </div>
-                </div>
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="pedidos-table">
-                            <thead><tr>
-                                <th>Colegio</th><th>Libro</th><th>Cant.</th>
-                                <th>Fecha</th><th>Estado</th><th>Acciones</th>
-                            </tr></thead>
-                            <tbody id="pedidos-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ADMIN: COLEGIOS -->
-            <section id="view-colegios" class="view">
-                <div class="view-header">
-                    <div></div>
-                    <button class="btn-primary" id="add-school-btn"><i class='bx bx-plus'></i> Nuevo Colegio</button>
-                </div>
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="colegios-table">
-                            <thead><tr>
-                                <th>Nombre</th><th>Email</th><th>Pedidos</th><th>Alta</th><th>Acciones</th>
-                            </tr></thead>
-                            <tbody id="colegios-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SCHOOL: CATÁLOGO -->
-            <section id="view-catalogo" class="view">
-                <div class="view-header">
-                    <div class="filter-bar">
-                        <div class="search-wrap-sm">
-                            <i class='bx bx-search'></i>
-                            <input type="text" id="cat-search" placeholder="Buscar en el catálogo...">
-                        </div>
-                        <select id="cat-cat-filter"><option value="">Todas las categorías</option></select>
-                    </div>
-                    <div class="realtime-badge"><span class="rt-dot"></span>Tiempo real</div>
-                </div>
-                <div id="update-banner" class="update-banner hidden">
-                    <i class='bx bx-refresh'></i> El inventario ha sido actualizado
-                </div>
-                <div class="books-grid" id="catalogo-grid"></div>
-            </section>
-
-            <!-- SCHOOL: MIS PEDIDOS -->
-            <section id="view-mis-pedidos" class="view">
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="mis-pedidos-table">
-                            <thead><tr>
-                                <th>Libro</th><th>Cantidad</th><th>Fecha</th><th>Estado</th><th>Notas del Admin</th>
-                            </tr></thead>
-                            <tbody id="mis-pedidos-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-        </div><!-- /content-area -->
-    </main>
-</div><!-- /app -->
-
-<!-- MODALS (All unused modal code removed to simplify the HTML) -->
-
-<!-- Notification Container -->
-<div id="notification-container"></div>
-
-<!-- CART OVERLAY -->
-<div id="cart-overlay" class="cart-overlay hidden" onclick="app.closeCart()"></div>
-
-<!-- CART PANEL -->
-<div id="cart-panel" class="cart-panel">
-    <div class="cart-header">
-        <h3><i class='bx bx-cart-alt'></i> Mi Carrito</h3>
-        <button onclick="app.closeCart()"><i class='bx bx-x'></i></button>
+<!-- BOOKS -->
+<div class="books-section">
+    <div class="section-heading">
+        <h2 id="results-count">Cargando catálogo…</h2>
     </div>
-    <div id="cart-items" class="cart-items"></div>
-    <div class="cart-footer">
-        <p id="cart-summary" class="cart-summary"></p>
-        <button id="confirm-order-btn" class="btn-primary" onclick="app.confirmarPedido()">
-            <i class='bx bx-send'></i> Confirmar Pedido
-        </button>
+    <!-- Skeletons mientras carga -->
+    <div class="loading-grid" id="loading-grid">
+        ${Array(8).fill('<div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line"></div></div></div>').join('')}
     </div>
+    <div class="books-grid" id="books-grid" style="display:none;"></div>
 </div>
 
-<!-- CART FAB -->
-<button id="cart-fab" class="cart-fab hidden" onclick="app.openCart()">
-    <i class='bx bx-cart-alt'></i>
-    <span id="cart-count" class="cart-count">0</span>
-</button>
+<!-- FOOTER -->
+<footer class="site-footer">
+    Biblioteca Municipal de Algeciras
+</footer>
 
-<script src="script.js"></script>
+<script>
+    let allBooks = [];
+    let searchQuery = '';
+    let categoryFilter = '';
+    let availFilter = 'all';
+
+    // Cargar en tiempo real desde Firestore
+    db.collection('Libros').onSnapshot((snapshot) => {
+        allBooks = [];
+        snapshot.forEach(doc => allBooks.push({ id: doc.id, ...doc.data() }));
+        populateCategories();
+        renderBooks();
+        updateStats();
+        // Ocultar skeleton, mostrar grid
+        document.getElementById('loading-grid').style.display = 'none';
+        document.getElementById('books-grid').style.display = 'grid';
+    }, (err) => {
+        document.getElementById('loading-grid').innerHTML = '<p style="color:#ef4444;padding:2rem;">Error al cargar el catálogo. Inténtalo más tarde.</p>';
+    });
+
+    function populateCategories() {
+        const sel = document.getElementById('cat-filter');
+        const cats = [...new Set(allBooks.map(b => b.categoria).filter(Boolean))].sort();
+        const current = sel.value;
+        sel.innerHTML = '<option value="">Todas las categorías</option>' +
+            cats.map(c => `<option value="${c}" ${c===current?'selected':''}>${c}</option>`).join('');
+    }
+
+    function filtered() {
+        return allBooks.filter(b => {
+            const q = searchQuery.toLowerCase();
+            const matchQ = !q ||
+                (b.titulo||'').toLowerCase().includes(q) ||
+                (b.autor||'').toLowerCase().includes(q) ||
+                (b.editorial||'').toLowerCase().includes(q) ||
+                (b.sinopsis||'').toLowerCase().includes(q);
+            const matchCat = !categoryFilter || b.categoria === categoryFilter;
+            const matchAvail = availFilter === 'all' ||
+                (availFilter === 'available' && b.disponibles > 0) ||
+                (availFilter === 'out' && b.disponibles <= 0);
+            return matchQ && matchCat && matchAvail;
+        });
+    }
+
+    function renderBooks() {
+        const grid = document.getElementById('books-grid');
+        const books = filtered();
+        const count = document.getElementById('results-count');
+        count.textContent = books.length === 0
+            ? 'Sin resultados'
+            : `${books.length} libro${books.length!==1?'s':''} encontrado${books.length!==1?'s':''}`;
+
+        if (books.length === 0) {
+            grid.innerHTML = `<div class="empty-state"><i class='bx bx-book-open'></i><h3>No hay libros que coincidan</h3><p>Prueba con otros términos de búsqueda o cambia los filtros.</p></div>`;
+            return;
+        }
+
+        grid.innerHTML = books.map(book => {
+            const disponible = book.disponibles > 0;
+            const coverHtml = book.portada_url
+                ? `<img src="${book.portada_url}" alt="Portada de ${book.titulo}" loading="lazy">`
+                : `<i class='bx bx-book-alt book-cover-placeholder'></i>`;
+
+            return `
+            <article class="book-card">
+                <div class="book-cover">${coverHtml}</div>
+                <div class="book-body">
+                    <div class="book-title" title="${book.titulo||''}">${book.titulo||'Sin título'}</div>
+                    <div class="book-author">${book.autor||'Autor desconocido'}</div>
+                    <div class="book-meta">
+                        ${book.categoria ? `<span class="badge badge-cat">${book.categoria}</span>` : ''}
+                        ${book.edad_recomendada ? `<span class="badge badge-age">${book.edad_recomendada}</span>` : ''}
+                    </div>
+                    ${book.sinopsis ? `<p class="book-synopsis">${book.sinopsis}</p>` : ''}
+                    <div class="book-footer">
+                        <span class="status-badge ${disponible ? 'status-available' : 'status-out'}">
+                            <i class='bx ${disponible ? 'bx-check-circle' : 'bx-x-circle'}'></i>
+                            ${disponible ? 'Disponible' : 'Agotado'}
+                        </span>
+                        <span class="stock-info">${book.disponibles}/${book.total||0} ej.</span>
+                    </div>
+                </div>
+            </article>`;
+        }).join('');
+    }
+
+    function updateStats() {
+        const disp = allBooks.filter(b => b.disponibles > 0).length;
+        const agot = allBooks.length - disp;
+        document.getElementById('stat-total').textContent = allBooks.length;
+        document.getElementById('stat-disp').textContent = disp;
+        document.getElementById('stat-agot').textContent = agot;
+    }
+
+    // Eventos de filtros
+    document.getElementById('search-input').addEventListener('input', (e) => { searchQuery = e.target.value; renderBooks(); });
+    document.getElementById('cat-filter').addEventListener('change', (e) => { categoryFilter = e.target.value; renderBooks(); });
+    document.querySelectorAll('.pill[data-filter]').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.pill[data-filter]').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            availFilter = pill.dataset.filter;
+            renderBooks();
+        });
+    });
+</script>
 </body>
 </html>
