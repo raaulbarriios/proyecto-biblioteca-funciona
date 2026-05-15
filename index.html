@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BiblioTech - Gestión de Biblioteca</title>
+    <title>BiblioTech – Portal Colegios</title>
+    <meta name="description" content="Portal de reserva de libros para colegios de Algeciras.">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +13,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
     <script src="firebase-config.js"></script>
 </head>
 <body>
@@ -30,7 +30,7 @@
                 <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Ayuntamiento de Algeciras">
             </div>
             <h1>BiblioTech</h1>
-            <p>Accede con tu cuenta</p>
+            <p>Portal de Colegios</p>
         </div>
         <form id="login-form">
             <div id="dynamic-login-fields"></div>
@@ -41,7 +41,6 @@
             </button>
         </form>
         <div class="login-footer">
-            <span class="role-chip"><i class='bx bxs-shield'></i> Admin</span>
             <span class="role-chip"><i class='bx bxs-school'></i> Colegio</span>
         </div>
     </div>
@@ -57,22 +56,8 @@
             <span>BiblioTech</span>
         </div>
 
-        <!-- Admin Nav -->
-        <nav class="sidebar-nav hidden" id="admin-nav">
-            <p class="nav-section-label">Administración</p>
-            <ul>
-                <li class="nav-item active" data-view="dashboard"><i class='bx bxs-dashboard'></i><span>Dashboard</span></li>
-                <li class="nav-item" data-view="inventario"><i class='bx bxs-book'></i><span>Inventario</span></li>
-                <li class="nav-item" data-view="pedidos">
-                    <i class='bx bxs-bell'></i><span>Pedidos</span>
-                    <span class="nav-badge hidden" id="pedidos-badge">0</span>
-                </li>
-                <li class="nav-item" data-view="colegios"><i class='bx bxs-school'></i><span>Colegios</span></li>
-            </ul>
-        </nav>
-
         <!-- School Nav -->
-        <nav class="sidebar-nav hidden" id="school-nav">
+        <nav class="sidebar-nav" id="school-nav">
             <p class="nav-section-label">Mi Panel</p>
             <ul>
                 <li class="nav-item active" data-view="dashboard"><i class='bx bxs-dashboard'></i><span>Dashboard</span></li>
@@ -120,75 +105,8 @@
                         <div id="recent-inventory-list" class="activity-list"></div>
                     </div>
                     <div class="content-card">
-                        <div class="card-header"><h3>Pedidos Recientes</h3></div>
+                        <div class="card-header"><h3>Mis Pedidos Recientes</h3></div>
                         <div id="recent-pedidos-list" class="activity-list"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ADMIN: INVENTARIO -->
-            <section id="view-inventario" class="view">
-                <div class="view-header">
-                    <div class="filter-bar">
-                        <div class="search-wrap-sm">
-                            <i class='bx bx-search'></i>
-                            <input type="text" id="inv-search" placeholder="Buscar libros...">
-                        </div>
-                        <select id="inv-cat-filter"><option value="">Todas las categorías</option></select>
-                    </div>
-                    <button class="btn-primary" id="add-book-btn"><i class='bx bx-plus'></i> Nuevo Libro</button>
-                </div>
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="inventario-table">
-                            <thead><tr>
-                                <th>Título</th><th>Autor</th><th>Categoría</th>
-                                <th>Total</th><th>Disponibles</th><th>Estado</th><th>Acciones</th>
-                            </tr></thead>
-                            <tbody id="inventario-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ADMIN: PEDIDOS -->
-            <section id="view-pedidos" class="view">
-                <div class="view-header">
-                    <div class="filter-tabs" id="pedidos-tabs">
-                        <button class="ftab active" data-f="all">Todos</button>
-                        <button class="ftab" data-f="pending">Pendientes</button>
-                        <button class="ftab" data-f="approved">Aprobados</button>
-                        <button class="ftab" data-f="rejected">Rechazados</button>
-                        <button class="ftab" data-f="returned">Devueltos</button>
-                    </div>
-                </div>
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="pedidos-table">
-                            <thead><tr>
-                                <th>Colegio</th><th>Libro</th><th>Cant.</th>
-                                <th>Fecha</th><th>Estado</th><th>Acciones</th>
-                            </tr></thead>
-                            <tbody id="pedidos-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ADMIN: COLEGIOS -->
-            <section id="view-colegios" class="view">
-                <div class="view-header">
-                    <div></div>
-                    <button class="btn-primary" id="add-school-btn"><i class='bx bx-plus'></i> Nuevo Colegio</button>
-                </div>
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="colegios-table">
-                            <thead><tr>
-                                <th>Nombre</th><th>Email</th><th>Pedidos</th><th>Alta</th><th>Acciones</th>
-                            </tr></thead>
-                            <tbody id="colegios-tbody"></tbody>
-                        </table>
                     </div>
                 </div>
             </section>
@@ -229,9 +147,6 @@
     </main>
 </div><!-- /app -->
 
-<!-- MODALS (All unused modal code removed to simplify the HTML) -->
-
-<!-- Notification Container -->
 <div id="notification-container"></div>
 
 <!-- CART OVERLAY -->
@@ -258,6 +173,6 @@
     <span id="cart-count" class="cart-count">0</span>
 </button>
 
-<script src="script.js"></script>
+<script src="./script.js"></script>
 </body>
 </html>
