@@ -3,261 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BiblioTech - Gestión de Biblioteca</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <title>Panel Admin – BiblioTech</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
     <script src="firebase-config.js"></script>
+    <script>
+        // ===== URLs de los otros portales (actualiza cuando separes en branches) =====
+        const COLEGIOS_URL = '../colegios/'; 
+        const PUBLICO_URL  = '../publico/';  
+        // ==============================================================================
+
+        // Protección de acceso admin
+        const user = JSON.parse(sessionStorage.getItem('bibliotech_user'));
+        if (!user || user.role !== 'admin') {
+            alert("Acceso denegado. Esta página es solo para administradores.");
+            window.location.href = './';
+        }
+    </script>
+    <style>
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body>
+<body class="p-8">
 
-<!-- ===== LOGIN ===== -->
-<div id="login-screen" class="overlay active">
-    <div class="login-bg">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-    </div>
-    <div class="login-card">
-        <div class="login-header">
-            <div class="login-logo">
-                <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Ayuntamiento de Algeciras">
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+                <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Algeciras" class="w-10 h-auto mr-3">
+                Gestor del Inventario (Admin)
+            </h1>
+            <div>
+                <a id="link-colegios" href="#" onclick="window.open(COLEGIOS_URL,'_blank'); return false;" class="inline-block bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded shadow mr-2">
+                    Vista Colegios
+                </a>
+                <a id="link-publico" href="#" onclick="window.open(PUBLICO_URL,'_blank'); return false;" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow mr-2">
+                    Vista Pública
+                </a>
+                <button onclick="sessionStorage.removeItem('bibliotech_user'); window.location.reload();" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded shadow">
+                    Cerrar Sesión
+                </button>
             </div>
-            <h1>BiblioTech</h1>
-            <p>Accede con tu cuenta</p>
-        </div>
-        <form id="login-form">
-            <div id="dynamic-login-fields"></div>
-            <div id="login-error" class="error-msg hidden"></div>
-            <button type="submit" class="btn-primary full-w" id="login-btn">
-                <span id="login-btn-text">Iniciar Sesión</span>
-                <span id="login-spinner" class="btn-spinner hidden"></span>
-            </button>
-        </form>
-        <div class="login-footer">
-            <span class="role-chip"><i class='bx bxs-shield'></i> Admin</span>
-            <span class="role-chip"><i class='bx bxs-school'></i> Colegio</span>
-        </div>
-    </div>
-</div>
-
-<!-- ===== APP ===== -->
-<div id="app-container" class="hidden">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Algeciras" class="sidebar-logo">
-            <span>BiblioTech</span>
         </div>
 
-        <!-- Admin Nav -->
-        <nav class="sidebar-nav hidden" id="admin-nav">
-            <p class="nav-section-label">Administración</p>
-            <ul>
-                <li class="nav-item active" data-view="dashboard"><i class='bx bxs-dashboard'></i><span>Dashboard</span></li>
-                <li class="nav-item" data-view="inventario"><i class='bx bxs-book'></i><span>Inventario</span></li>
-                <li class="nav-item" data-view="pedidos">
-                    <i class='bx bxs-bell'></i><span>Pedidos</span>
-                    <span class="nav-badge hidden" id="pedidos-badge">0</span>
-                </li>
-                <li class="nav-item" data-view="colegios"><i class='bx bxs-school'></i><span>Colegios</span></li>
-            </ul>
-        </nav>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <!-- Formulario -->
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 id="form-title" class="text-xl font-semibold text-gray-700 mb-4">Añadir Libro</h3>
+                <input type="hidden" id="book-id">
 
-        <!-- School Nav -->
-        <nav class="sidebar-nav hidden" id="school-nav">
-            <p class="nav-section-label">Mi Panel</p>
-            <ul>
-                <li class="nav-item active" data-view="dashboard"><i class='bx bxs-dashboard'></i><span>Dashboard</span></li>
-                <li class="nav-item" data-view="catalogo"><i class='bx bxs-book-open'></i><span>Catálogo</span></li>
-                <li class="nav-item" data-view="mis-pedidos"><i class='bx bxs-time-five'></i><span>Mis Pedidos</span></li>
-            </ul>
-        </nav>
+                <div id="dynamic-fields"></div>
 
-        <div class="sidebar-user">
-            <div class="user-info">
-                <div class="user-avatar" id="user-avatar-char">U</div>
-                <div class="user-details">
-                    <span id="current-user-name">–</span>
-                    <small id="current-user-role">–</small>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Imagen de Portada (Opcional)</label>
+                    <input type="file" id="book-cover" accept="image/*" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <p class="text-xs text-gray-500 mt-1">Admite JPG, PNG, WebP… La imagen se comprime automáticamente.</p>
+                </div>
+
+                <div class="flex gap-2 mt-6">
+                    <button id="btn-save" onclick="guardarLibro()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors shadow-sm">
+                        Guardar
+                    </button>
+                    <button onclick="limpiarFormulario()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition-colors">
+                        Cancelar
+                    </button>
                 </div>
             </div>
-            <button id="logout-btn" title="Cerrar Sesión"><i class='bx bx-log-out'></i></button>
+
+            <!-- Tabla de Libros -->
+            <div class="md:col-span-2 overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Portada</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título / Autor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-libros" class="divide-y divide-gray-200">
+                        <!-- Content -->
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </aside>
 
-    <!-- MAIN -->
-    <main class="main-content">
-        <header class="top-bar">
-            <div class="top-bar-left">
-                <button class="menu-toggle" id="menu-toggle"><i class='bx bx-menu'></i></button>
-                <h2 id="view-title">Dashboard</h2>
-            </div>
-            <div class="top-bar-right">
-                <div class="realtime-pill"><span class="rt-dot"></span>En vivo</div>
-                <div class="search-box">
-                    <i class='bx bx-search'></i>
-                    <input type="text" id="global-search" placeholder="Buscar...">
-                </div>
-            </div>
-        </header>
-
-        <div id="content-area">
-
-            <!-- DASHBOARD -->
-            <section id="view-dashboard" class="view active">
-                <div class="stats-grid" id="dashboard-stats"></div>
-                <div class="recent-grid">
-                    <div class="content-card">
-                        <div class="card-header"><h3>Actividad Reciente</h3></div>
-                        <div id="recent-inventory-list" class="activity-list"></div>
-                    </div>
-                    <div class="content-card">
-                        <div class="card-header"><h3>Pedidos Recientes</h3></div>
-                        <div id="recent-pedidos-list" class="activity-list"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ADMIN: INVENTARIO -->
-            <section id="view-inventario" class="view">
-                <div class="view-header">
-                    <div class="filter-bar">
-                        <div class="search-wrap-sm">
-                            <i class='bx bx-search'></i>
-                            <input type="text" id="inv-search" placeholder="Buscar libros...">
-                        </div>
-                        <select id="inv-cat-filter"><option value="">Todas las categorías</option></select>
-                    </div>
-                    <button class="btn-primary" id="add-book-btn"><i class='bx bx-plus'></i> Nuevo Libro</button>
-                </div>
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="inventario-table">
-                            <thead><tr>
-                                <th>Título</th><th>Autor</th><th>Categoría</th>
-                                <th>Total</th><th>Disponibles</th><th>Estado</th><th>Acciones</th>
-                            </tr></thead>
-                            <tbody id="inventario-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ADMIN: PEDIDOS -->
-            <section id="view-pedidos" class="view">
-                <div class="view-header">
-                    <div class="filter-tabs" id="pedidos-tabs">
-                        <button class="ftab active" data-f="all">Todos</button>
-                        <button class="ftab" data-f="pending">Pendientes</button>
-                        <button class="ftab" data-f="approved">Aprobados</button>
-                        <button class="ftab" data-f="rejected">Rechazados</button>
-                        <button class="ftab" data-f="returned">Devueltos</button>
-                    </div>
-                </div>
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="pedidos-table">
-                            <thead><tr>
-                                <th>Colegio</th><th>Libro</th><th>Cant.</th>
-                                <th>Fecha</th><th>Estado</th><th>Acciones</th>
-                            </tr></thead>
-                            <tbody id="pedidos-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ADMIN: COLEGIOS -->
-            <section id="view-colegios" class="view">
-                <div class="view-header">
-                    <div></div>
-                    <button class="btn-primary" id="add-school-btn"><i class='bx bx-plus'></i> Nuevo Colegio</button>
-                </div>
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="colegios-table">
-                            <thead><tr>
-                                <th>Nombre</th><th>Email</th><th>Pedidos</th><th>Alta</th><th>Acciones</th>
-                            </tr></thead>
-                            <tbody id="colegios-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SCHOOL: CATÁLOGO -->
-            <section id="view-catalogo" class="view">
-                <div class="view-header">
-                    <div class="filter-bar">
-                        <div class="search-wrap-sm">
-                            <i class='bx bx-search'></i>
-                            <input type="text" id="cat-search" placeholder="Buscar en el catálogo...">
-                        </div>
-                        <select id="cat-cat-filter"><option value="">Todas las categorías</option></select>
-                    </div>
-                    <div class="realtime-badge"><span class="rt-dot"></span>Tiempo real</div>
-                </div>
-                <div id="update-banner" class="update-banner hidden">
-                    <i class='bx bx-refresh'></i> El inventario ha sido actualizado
-                </div>
-                <div class="books-grid" id="catalogo-grid"></div>
-            </section>
-
-            <!-- SCHOOL: MIS PEDIDOS -->
-            <section id="view-mis-pedidos" class="view">
-                <div class="content-card">
-                    <div class="table-responsive">
-                        <table id="mis-pedidos-table">
-                            <thead><tr>
-                                <th>Libro</th><th>Cantidad</th><th>Fecha</th><th>Estado</th><th>Notas del Admin</th>
-                            </tr></thead>
-                            <tbody id="mis-pedidos-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-        </div><!-- /content-area -->
-    </main>
-</div><!-- /app -->
-
-<!-- MODALS (All unused modal code removed to simplify the HTML) -->
-
-<!-- Notification Container -->
-<div id="notification-container"></div>
-
-<!-- CART OVERLAY -->
-<div id="cart-overlay" class="cart-overlay hidden" onclick="app.closeCart()"></div>
-
-<!-- CART PANEL -->
-<div id="cart-panel" class="cart-panel">
-    <div class="cart-header">
-        <h3><i class='bx bx-cart-alt'></i> Mi Carrito</h3>
-        <button onclick="app.closeCart()"><i class='bx bx-x'></i></button>
+        <!-- Registro de Reservas -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 mt-12 border-t pt-8">Registro de Reservas de Colegios</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Colegio</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Libro</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Cantidad</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-reservas" class="divide-y divide-gray-200">
+                    <!-- Reservas Content -->
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div id="cart-items" class="cart-items"></div>
-    <div class="cart-footer">
-        <p id="cart-summary" class="cart-summary"></p>
-        <button id="confirm-order-btn" class="btn-primary" onclick="app.confirmarPedido()">
-            <i class='bx bx-send'></i> Confirmar Pedido
-        </button>
-    </div>
-</div>
 
-<!-- CART FAB -->
-<button id="cart-fab" class="cart-fab hidden" onclick="app.openCart()">
-    <i class='bx bx-cart-alt'></i>
-    <span id="cart-count" class="cart-count">0</span>
-</button>
-
-<script src="script.js"></script>
+    <script src="gestor_bd.js"></script>
 </body>
 </html>

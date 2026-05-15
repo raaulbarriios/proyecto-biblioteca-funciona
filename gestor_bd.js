@@ -22,14 +22,13 @@ function renderForm() {
         const wrapClass = f.col === 'full' ? 'mb-4' : 'flex-1';
         const isHalf = f.col === 'half';
         
-        // Abrir contenedor de fila si es el primer elemento 'half'
         if (isHalf && f.id === 'editorial' || isHalf && f.id === 'total') {
             html += '<div class="flex gap-4 mb-4">';
         }
 
         const inputStr = f.type === 'textarea' 
             ? `<textarea id="${f.id}" rows="3" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>`
-            : `<input type="${f.type}" id="${f.id}" ${f.val!==undefined?`value="${f.val}"`:''} ${f.min!==undefined?`min="${f.min}"`:''} class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">`;
+            : `<input type="${f.type}" id="${f.id}" ${f.val!==undefined?`value="${f.val}"`:''}  ${f.min!==undefined?`min="${f.min}"`:''}  class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">`;
         
         html += `
             <div class="${wrapClass}">
@@ -38,7 +37,6 @@ function renderForm() {
             </div>
         `;
 
-        // Cerrar contenedor de fila si es el último elemento 'half'
         if (isHalf && f.id === 'edad_recomendada' || isHalf && f.id === 'disponibles') {
             html += '</div>';
         }
@@ -47,7 +45,6 @@ function renderForm() {
     container.innerHTML = html;
 }
 
-// Generar el formulario al cargar
 document.addEventListener('DOMContentLoaded', renderForm);
 
 // Cargar libros en tiempo real
@@ -57,7 +54,7 @@ collectionRef.onSnapshot((snapshot) => {
     window.librosData = {};
     
     if (snapshot.empty) {
-        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No hay libros en la base de datos. Añade uno.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No hay libros en la base de datos. Añade uno.</td></tr>';
         return;
     }
 
@@ -73,7 +70,7 @@ collectionRef.onSnapshot((snapshot) => {
                 <div class="w-12 h-16 bg-gray-100 rounded border flex items-center justify-center overflow-hidden">
                     ${libro.portada_url 
                         ? `<img src="${libro.portada_url}" class="w-full h-full object-cover">`
-                        : `<i class='bx bx-image text-gray-400 text-xl'></i>`
+                        : `<span style="font-size:1.5rem; color:#cbd5e1;">📚</span>`
                     }
                 </div>
             </td>
@@ -102,8 +99,7 @@ collectionRef.onSnapshot((snapshot) => {
 
 /**
  * Comprime y redimensiona una imagen en el navegador usando Canvas.
- * Devuelve una cadena base64 (JPEG) que se puede guardar directamente en Firestore
- * y usar como src de <img> sin necesidad de Firebase Storage.
+ * Devuelve una cadena base64 (JPEG) que se puede guardar directamente en Firestore.
  */
 function comprimirImagen(file) {
     return new Promise((resolve, reject) => {
@@ -118,7 +114,6 @@ function comprimirImagen(file) {
                 let w = img.width;
                 let h = img.height;
 
-                // Mantener proporción sin superar el máximo
                 if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
                 if (h > MAX_H) { w = Math.round(w * MAX_H / h); h = MAX_H; }
 
@@ -128,7 +123,6 @@ function comprimirImagen(file) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, w, h);
 
-                // JPEG al 75% — buen equilibrio calidad/tamaño (~30-80 KB para portadas)
                 resolve(canvas.toDataURL('image/jpeg', 0.75));
             };
             img.src = e.target.result;
@@ -162,12 +156,10 @@ async function guardarLibro() {
     try {
         let portada_url = null;
         
-        // Si hay un libro existente, mantenemos su portada actual si no se sube una nueva
         if (id && window.librosData[id]) {
             portada_url = window.librosData[id].portada_url || null;
         }
 
-        // Procesar imagen si se seleccionó una
         if (file) {
             if (!file.type.startsWith('image/')) {
                 alert('El archivo seleccionado no es una imagen válida.');
@@ -175,11 +167,8 @@ async function guardarLibro() {
                 btn.innerHTML = 'Guardar';
                 return;
             }
-
             btn.innerHTML = 'Procesando imagen...';
             try {
-                // Comprimir y convertir a base64 en el propio navegador
-                // (funciona con JPG, PNG, WebP y cualquier formato)
                 portada_url = await comprimirImagen(file);
             } catch (imgError) {
                 alert('Error al procesar la imagen: ' + imgError.message);
@@ -189,17 +178,9 @@ async function guardarLibro() {
             }
         }
 
-
         const data = { 
-            titulo, 
-            autor, 
-            categoria, 
-            editorial,
-            edad_recomendada,
-            sinopsis,
-            total, 
-            disponibles,
-            portada_url,
+            titulo, autor, categoria, editorial, edad_recomendada, sinopsis,
+            total, disponibles, portada_url,
             status: disponibles > 0 ? 'Disponible' : 'Agotado'
         };
 
@@ -221,7 +202,7 @@ async function guardarLibro() {
 }
 
 function borrarLibro(id) {
-    if (confirm("¿Estás seguro de que quieres borrar este libro permanentemente de la base de datos?")) {
+    if (confirm("¿Estás seguro de que quieres borrar este libro permanentemente?")) {
         collectionRef.doc(id).delete().catch(error => console.error("Error al borrar:", error));
     }
 }
@@ -258,7 +239,7 @@ function limpiarFormulario() {
     document.getElementById('sinopsis').value = "";
     document.getElementById('total').value = "1";
     document.getElementById('disponibles').value = "1";
-    document.getElementById('book-cover').value = ""; // Limpiar input file
+    document.getElementById('book-cover').value = "";
     
     const btn = document.getElementById('btn-save');
     btn.innerText = "Guardar";
@@ -286,9 +267,7 @@ reservasRef.orderBy('fecha', 'desc').onSnapshot((snapshot) => {
         const completada = res.estado === 'completada';
 
         const tr = document.createElement('tr');
-        tr.className = completada
-            ? 'bg-green-50 opacity-70 transition-colors'
-            : 'hover:bg-gray-50 transition-colors';
+        tr.className = completada ? 'bg-green-50 opacity-70 transition-colors' : 'hover:bg-gray-50 transition-colors';
 
         tr.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${date}</td>
@@ -300,29 +279,16 @@ reservasRef.orderBy('fecha', 'desc').onSnapshot((snapshot) => {
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold text-center">${res.cantidad}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm">
                 ${completada
-                    ? `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                           ✔ Completada
-                       </span>`
-                    : `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                           ⏳ Pendiente
-                       </span>`
+                    ? `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">✔ Completada</span>`
+                    : `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">⏳ Pendiente</span>`
                 }
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                 ${completada
-                    ? `<button onclick="toggleCompletada('${doc.id}', true)"
-                              class="inline-flex items-center gap-1 bg-gray-500 hover:bg-gray-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors shadow-sm">
-                           ↩ Desmarcar
-                       </button>`
-                    : `<button onclick="toggleCompletada('${doc.id}', false)"
-                              class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors shadow-sm">
-                           ✔ Marcar completada
-                       </button>`
+                    ? `<button onclick="toggleCompletada('${doc.id}', true)" class="inline-flex items-center gap-1 bg-gray-500 hover:bg-gray-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors shadow-sm">↩ Desmarcar</button>`
+                    : `<button onclick="toggleCompletada('${doc.id}', false)" class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors shadow-sm">✔ Marcar completada</button>`
                 }
-                <button onclick="borrarReserva('${doc.id}')"
-                        class="text-red-500 hover:text-red-700 text-xs font-medium">
-                    Eliminar
-                </button>
+                <button onclick="borrarReserva('${doc.id}')" class="text-red-500 hover:text-red-700 text-xs font-medium">Eliminar</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -348,45 +314,27 @@ async function borrarReserva(id) {
         const reservaRef = reservasRef.doc(id);
         const reservaSnap = await reservaRef.get();
 
-        if (!reservaSnap.exists) {
-            alert("Este pedido ya no existe.");
-            return;
-        }
+        if (!reservaSnap.exists) { alert("Este pedido ya no existe."); return; }
 
         const reserva = reservaSnap.data();
-
-        // Solo devolvemos el stock si el pedido estaba PENDIENTE.
-        // Si ya estaba completada, los libros ya salieron físicamente del almacén.
         const debeRestaurarStock = reserva.estado === 'pendiente' && reserva.libro_id && reserva.cantidad > 0;
 
         if (debeRestaurarStock) {
             const libroRef = db.collection('Libros').doc(reserva.libro_id);
-
             await db.runTransaction(async (transaction) => {
                 const libroSnap = await transaction.get(libroRef);
-
                 if (libroSnap.exists) {
                     const nuevoDisponibles = (libroSnap.data().disponibles || 0) + reserva.cantidad;
-                    const nuevoTotal = libroSnap.data().total || nuevoDisponibles;
-                    // No superar el total de ejemplares
-                    const disponiblesFinal = Math.min(nuevoDisponibles, nuevoTotal);
-
-                    transaction.update(libroRef, {
-                        disponibles: disponiblesFinal,
-                        status: disponiblesFinal > 0 ? 'Disponible' : 'Agotado'
-                    });
+                    const disponiblesFinal = Math.min(nuevoDisponibles, libroSnap.data().total || nuevoDisponibles);
+                    transaction.update(libroRef, { disponibles: disponiblesFinal, status: disponiblesFinal > 0 ? 'Disponible' : 'Agotado' });
                 }
-
                 transaction.delete(reservaRef);
             });
-
             alert(`Pedido eliminado. Se han devuelto ${reserva.cantidad} ejemplar(es) de "${reserva.libro_titulo}" al stock.`);
         } else {
-            // Si ya estaba completada, solo borrar el registro sin tocar el stock
             await reservaRef.delete();
-            alert("Registro de pedido eliminado. No se ha modificado el stock porque el pedido ya estaba completado.");
+            alert("Registro eliminado. El stock no se ha modificado (pedido ya completado).");
         }
-
     } catch (error) {
         console.error("Error al borrar reserva:", error);
         alert("Error al borrar el pedido: " + error.message);
