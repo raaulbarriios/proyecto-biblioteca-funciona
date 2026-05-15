@@ -132,11 +132,51 @@ async function guardarLibro() {
 
         // Subir imagen si se seleccionó una
         if (file) {
-            btn.innerHTML = 'Subiendo imagen...';
-            const storageRef = storage.ref(`portadas/${Date.now()}_${file.name}`);
-            const snapshot = await storageRef.put(file);
-            portada_url = await snapshot.ref.getDownloadURL();
+            // Validar tipo de archivo
+            if (!file.type.startsWith('image/')) {
+                alert('El archivo seleccionado no es una imagen válida.');
+                btn.disabled = false;
+                btn.innerHTML = 'Guardar';
+                return;
+            }
+
+            // Sanitizar el nombre del archivo para evitar problemas con caracteres especiales en URLs
+            const safeName = file.name
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar acentos
+                .replace(/[^a-zA-Z0-9._-]/g, '_');                // solo caracteres seguros
+
+            btn.innerHTML = 'Subiendo imagen (0%)...';
+
+            // Usamos safeName para el nombre del archivo en Storage
+            const storageRef = storage.ref(`portadas/${Date.now()}_${safeName}`);
+
+            // Pasar el contentType explícitamente — crítico para WebP y otros formatos modernos
+            const metadata = { contentType: file.type };
+
+            // Subir con seguimiento de progreso
+            portada_url = await new Promise((resolve, reject) => {
+                const uploadTask = storageRef.put(file, metadata);
+
+                uploadTask.on('state_changed',
+                    (progressSnapshot) => {
+                        const pct = Math.round(
+                            (progressSnapshot.bytesTransferred / progressSnapshot.totalBytes) * 100
+                        );
+                        btn.innerHTML = `Subiendo imagen (${pct}%)...`;
+                    },
+                    (error) => {
+                        // Error durante la subida
+                        reject(error);
+                    },
+                    async () => {
+                        // Subida completada → obtener URL
+                        const url = await uploadTask.snapshot.ref.getDownloadURL();
+                        resolve(url);
+                    }
+                );
+            });
         }
+
 
         const data = { 
             titulo, 
@@ -289,8 +329,54 @@ function toggleCompletada(id, isCompleted) {
     }
 }
 
-function borrarReserva(id) {
-    if (confirm("¿Estás seguro de borrar este registro de reserva?")) {
-        reservasRef.doc(id).delete().catch(error => console.error("Error al borrar reserva:", error));
+async function borrarReserva(id) {
+    if (!confirm("¿Estás seguro de borrar este pedido?\n\nSi el pedido está pendiente, los libros volverán a estar disponibles en el stock.")) return;
+
+    try {
+        const reservaRef = reservasRef.doc(id);
+        const reservaSnap = await reservaRef.get();
+
+        if (!reservaSnap.exists) {
+            alert("Este pedido ya no existe.");
+            return;
+        }
+
+        const reserva = reservaSnap.data();
+
+        // Solo devolvemos el stock si el pedido estaba PENDIENTE.
+        // Si ya estaba completada, los libros ya salieron físicamente del almacén.
+        const debeRestaurarStock = reserva.estado === 'pendiente' && reserva.libro_id && reserva.cantidad > 0;
+
+        if (debeRestaurarStock) {
+            const libroRef = db.collection('Libros').doc(reserva.libro_id);
+
+            await db.runTransaction(async (transaction) => {
+                const libroSnap = await transaction.get(libroRef);
+
+                if (libroSnap.exists) {
+                    const nuevoDisponibles = (libroSnap.data().disponibles || 0) + reserva.cantidad;
+                    const nuevoTotal = libroSnap.data().total || nuevoDisponibles;
+                    // No superar el total de ejemplares
+                    const disponiblesFinal = Math.min(nuevoDisponibles, nuevoTotal);
+
+                    transaction.update(libroRef, {
+                        disponibles: disponiblesFinal,
+                        status: disponiblesFinal > 0 ? 'Disponible' : 'Agotado'
+                    });
+                }
+
+                transaction.delete(reservaRef);
+            });
+
+            alert(`Pedido eliminado. Se han devuelto ${reserva.cantidad} ejemplar(es) de "${reserva.libro_titulo}" al stock.`);
+        } else {
+            // Si ya estaba completada, solo borrar el registro sin tocar el stock
+            await reservaRef.delete();
+            alert("Registro de pedido eliminado. No se ha modificado el stock porque el pedido ya estaba completado.");
+        }
+
+    } catch (error) {
+        console.error("Error al borrar reserva:", error);
+        alert("Error al borrar el pedido: " + error.message);
     }
 }

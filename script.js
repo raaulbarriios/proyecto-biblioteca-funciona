@@ -277,27 +277,64 @@ const app = {
         if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
 
         try {
-            const batch = this.state.cart.map(item =>
-                db.collection('Reservas').add({
-                    colegio: this.state.currentUser.name,
-                    email: this.state.currentUser.email,
-                    libro_id: item.id,
-                    libro_titulo: item.titulo,
-                    cantidad: item.cantidad,
-                    fecha: new Date().toISOString(),
-                    estado: 'pendiente'
-                })
-            );
-            await Promise.all(batch);
+            // Usamos una transacción para descontar el stock de forma atómica y segura
+            await db.runTransaction(async (transaction) => {
+                const librosRef = db.collection('Libros');
+                const reservasRef = db.collection('Reservas');
+
+                // 1. Leer el stock actual de todos los libros del carrito dentro de la transacción
+                const reads = await Promise.all(
+                    this.state.cart.map(item => transaction.get(librosRef.doc(item.id)))
+                );
+
+                // 2. Validar que hay suficiente stock para cada libro
+                for (let i = 0; i < this.state.cart.length; i++) {
+                    const snap = reads[i];
+                    const item = this.state.cart[i];
+                    if (!snap.exists) {
+                        throw new Error(`El libro "${item.titulo}" ya no existe en la base de datos.`);
+                    }
+                    const disponiblesActuales = snap.data().disponibles || 0;
+                    if (disponiblesActuales < item.cantidad) {
+                        throw new Error(`Stock insuficiente para "${item.titulo}". Disponibles: ${disponiblesActuales}, pedidos: ${item.cantidad}.`);
+                    }
+                }
+
+                // 3. Descontar el stock y crear las reservas
+                for (let i = 0; i < this.state.cart.length; i++) {
+                    const snap = reads[i];
+                    const item = this.state.cart[i];
+                    const nuevoDisponibles = snap.data().disponibles - item.cantidad;
+                    const nuevoStatus = nuevoDisponibles > 0 ? 'Disponible' : 'Agotado';
+
+                    // Actualizar stock del libro
+                    transaction.update(librosRef.doc(item.id), {
+                        disponibles: nuevoDisponibles,
+                        status: nuevoStatus
+                    });
+
+                    // Crear el registro de reserva
+                    const nuevaReservaRef = reservasRef.doc(); // genera ID automático
+                    transaction.set(nuevaReservaRef, {
+                        colegio: this.state.currentUser.name,
+                        email: this.state.currentUser.email,
+                        libro_id: item.id,
+                        libro_titulo: item.titulo,
+                        cantidad: item.cantidad,
+                        fecha: new Date().toISOString(),
+                        estado: 'pendiente'
+                    });
+                }
+            });
 
             this.state.cart = [];
             this.renderCart();
             this.closeCart();
             document.getElementById('cart-fab').classList.add('hidden');
-            alert('¡Pedido enviado correctamente! El administrador lo verá en su panel.');
+            alert('¡Pedido enviado correctamente! El stock ha sido actualizado.');
         } catch (error) {
             console.error('Error al enviar pedido:', error);
-            alert('Hubo un error al enviar el pedido. Inténtalo de nuevo.');
+            alert('Error al enviar el pedido: ' + error.message);
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = "<i class='bx bx-send'></i> Confirmar Pedido"; }
         }
