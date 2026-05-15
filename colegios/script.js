@@ -11,7 +11,15 @@ const app = {
         const savedUser = sessionStorage.getItem('bibliotech_user');
         if (savedUser) {
             this.state.currentUser = JSON.parse(savedUser);
-            if (this.state.currentUser.role === 'admin') { window.location.href = '../admin/'; return; }
+            if (this.state.currentUser.role === 'admin') {
+                // En el portal de colegios los admins no tienen acceso
+                sessionStorage.removeItem('bibliotech_user');
+                this.state.currentUser = null;
+                const errorMsg = document.getElementById('login-error');
+                errorMsg.textContent = 'Los administradores deben acceder desde el portal de administración.';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
             this.showApp();
         }
     },
@@ -59,9 +67,14 @@ const app = {
         try {
             const cred = await firebase.auth().signInWithEmailAndPassword(email, pass);
             const userEmail = cred.user.email;
+            // Usuario detectado como admin: bloquear acceso
             if (userEmail.includes('admin')) {
-                sessionStorage.setItem('bibliotech_user', JSON.stringify({ name: 'Administrador', role: 'admin', email: userEmail }));
-                window.location.href = '../admin/'; return;
+                const errorMsg = document.getElementById('login-error');
+                errorMsg.textContent = 'Los administradores deben acceder desde el portal de administración.';
+                errorMsg.classList.remove('hidden');
+                if (loginBtnText) loginBtnText.innerText = 'Iniciar Sesión';
+                try { await firebase.auth().signOut(); } catch(e) {}
+                return;
             }
             const name = userEmail.split('@')[0] || 'Colegio';
             this.state.currentUser = { name, role: 'colegio', email: userEmail };

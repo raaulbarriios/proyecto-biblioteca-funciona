@@ -8,13 +8,18 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="../firebase-config.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
+        // ===== URLs de los otros portales (actualiza cuando separes en branches) =====
+        const COLEGIOS_URL = '../colegios/'; 
+        const PUBLICO_URL  = '../publico/';  
+        // ==============================================================================
+
         // Protección de acceso admin
         const user = JSON.parse(sessionStorage.getItem('bibliotech_user'));
         if (!user || user.role !== 'admin') {
             alert("Acceso denegado. Esta página es solo para administradores.");
-            window.location.href = '../colegios/';
+            window.location.href = './';
         }
     </script>
     <style>
@@ -30,13 +35,13 @@
                 Gestor del Inventario (Admin)
             </h1>
             <div>
-                <a href="../colegios/" class="inline-block bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded shadow mr-2">
+                <a id="link-colegios" href="#" onclick="window.open(COLEGIOS_URL,'_blank'); return false;" class="inline-block bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded shadow mr-2">
                     Vista Colegios
                 </a>
-                <a href="../publico/" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow mr-2">
+                <a id="link-publico" href="#" onclick="window.open(PUBLICO_URL,'_blank'); return false;" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow mr-2">
                     Vista Pública
                 </a>
-                <button onclick="sessionStorage.removeItem('bibliotech_user'); window.location.href='../colegios/'" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded shadow">
+                <button onclick="sessionStorage.removeItem('bibliotech_user'); window.location.reload();" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded shadow">
                     Cerrar Sesión
                 </button>
             </div>
@@ -106,6 +111,6 @@
         </div>
     </div>
 
-    <script src="./gestor_bd.js"></script>
+    <script src="gestor_bd.js"></script>
 </body>
 </html>
