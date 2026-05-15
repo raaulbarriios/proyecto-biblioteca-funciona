@@ -455,7 +455,7 @@ const app = {
                 card.style.cssText = "background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;";
                 
                 const coverHtml = book.portada_url 
-                    ? `<img src="${book.portada_url}" style="width:100%; height:200px; object-cover: cover; background:#f8fafc;">`
+                    ? `<img src="${book.portada_url}" style="width:100%; height:200px; object-fit: cover; display:block; background:#f8fafc;">`
                     : `<div style="width:100%; height:180px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; color:#cbd5e1;">
                            <i class='bx bx-book-alt' style="font-size:3rem;"></i>
                        </div>`;

@@ -100,6 +100,43 @@ collectionRef.onSnapshot((snapshot) => {
     });
 });
 
+/**
+ * Comprime y redimensiona una imagen en el navegador usando Canvas.
+ * Devuelve una cadena base64 (JPEG) que se puede guardar directamente en Firestore
+ * y usar como src de <img> sin necesidad de Firebase Storage.
+ */
+function comprimirImagen(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onerror = () => reject(new Error('El archivo no es una imagen válida.'));
+            img.onload = () => {
+                const MAX_W = 400;
+                const MAX_H = 600;
+                let w = img.width;
+                let h = img.height;
+
+                // Mantener proporción sin superar el máximo
+                if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+                if (h > MAX_H) { w = Math.round(w * MAX_H / h); h = MAX_H; }
+
+                const canvas = document.createElement('canvas');
+                canvas.width  = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+
+                // JPEG al 75% — buen equilibrio calidad/tamaño (~30-80 KB para portadas)
+                resolve(canvas.toDataURL('image/jpeg', 0.75));
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 async function guardarLibro() {
     const id = document.getElementById('book-id').value;
     const titulo = document.getElementById('titulo').value.trim();
@@ -130,9 +167,8 @@ async function guardarLibro() {
             portada_url = window.librosData[id].portada_url || null;
         }
 
-        // Subir imagen si se seleccionó una
+        // Procesar imagen si se seleccionó una
         if (file) {
-            // Validar tipo de archivo
             if (!file.type.startsWith('image/')) {
                 alert('El archivo seleccionado no es una imagen válida.');
                 btn.disabled = false;
@@ -140,41 +176,17 @@ async function guardarLibro() {
                 return;
             }
 
-            // Sanitizar el nombre del archivo para evitar problemas con caracteres especiales en URLs
-            const safeName = file.name
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar acentos
-                .replace(/[^a-zA-Z0-9._-]/g, '_');                // solo caracteres seguros
-
-            btn.innerHTML = 'Subiendo imagen (0%)...';
-
-            // Usamos safeName para el nombre del archivo en Storage
-            const storageRef = storage.ref(`portadas/${Date.now()}_${safeName}`);
-
-            // Pasar el contentType explícitamente — crítico para WebP y otros formatos modernos
-            const metadata = { contentType: file.type };
-
-            // Subir con seguimiento de progreso
-            portada_url = await new Promise((resolve, reject) => {
-                const uploadTask = storageRef.put(file, metadata);
-
-                uploadTask.on('state_changed',
-                    (progressSnapshot) => {
-                        const pct = Math.round(
-                            (progressSnapshot.bytesTransferred / progressSnapshot.totalBytes) * 100
-                        );
-                        btn.innerHTML = `Subiendo imagen (${pct}%)...`;
-                    },
-                    (error) => {
-                        // Error durante la subida
-                        reject(error);
-                    },
-                    async () => {
-                        // Subida completada → obtener URL
-                        const url = await uploadTask.snapshot.ref.getDownloadURL();
-                        resolve(url);
-                    }
-                );
-            });
+            btn.innerHTML = 'Procesando imagen...';
+            try {
+                // Comprimir y convertir a base64 en el propio navegador
+                // (funciona con JPG, PNG, WebP y cualquier formato)
+                portada_url = await comprimirImagen(file);
+            } catch (imgError) {
+                alert('Error al procesar la imagen: ' + imgError.message);
+                btn.disabled = false;
+                btn.innerHTML = id ? 'Actualizar en BD' : 'Guardar';
+                return;
+            }
         }
 
 
