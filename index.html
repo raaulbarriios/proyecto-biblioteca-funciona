@@ -270,14 +270,16 @@
             cats.map(c => `<option value="${c}" ${c===current?'selected':''}>${c}</option>`).join('');
     }
 
+    const normalizar = (texto) => (texto || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
     function filtered() {
         return allBooks.filter(b => {
-            const q = searchQuery.toLowerCase();
+            const q = normalizar(searchQuery);
             const matchQ = !q ||
-                (b.titulo||'').toLowerCase().includes(q) ||
-                (b.autor||'').toLowerCase().includes(q) ||
-                (b.editorial||'').toLowerCase().includes(q) ||
-                (b.sinopsis||'').toLowerCase().includes(q);
+                normalizar(b.titulo).includes(q) ||
+                normalizar(b.autor).includes(q) ||
+                normalizar(b.editorial).includes(q) ||
+                normalizar(b.sinopsis).includes(q);
             const matchCat = !categoryFilter || b.categoria === categoryFilter;
             const matchAvail = availFilter === 'all' ||
                 (availFilter === 'available' && b.disponibles > 0) ||
