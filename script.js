@@ -325,7 +325,14 @@ const app = {
         librosFiltrados.forEach(book => {
             const disponible = book.disponibles > 0;
             const card = document.createElement('div');
-            card.style.cssText = "background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.05);border:1px solid #f1f5f9;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s;";
+            card.style.cssText = "background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.05);border:1px solid #f1f5f9;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;";
+            
+            // Open modal on click (except when clicking add button)
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('button') || e.target.closest('a')) return;
+                openBookModal(book.id);
+            });
+
             const coverHtml = book.portada_url
                 ? `<img src="${book.portada_url}" style="width:100%;height:200px;object-fit:cover;display:block;background:#f8fafc;">`
                 : `<div style="width:100%;height:180px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#cbd5e1;"><i class='bx bx-book-alt' style="font-size:3rem;"></i></div>`;
@@ -369,3 +376,62 @@ const app = {
 
 document.addEventListener('DOMContentLoaded', () => app.init());
 window.app = app;
+
+window.openBookModal = function(bookId) {
+    const book = app.state.books.find(b => b.id === bookId);
+    if (!book) return;
+    const disponible = book.disponibles > 0;
+
+    document.getElementById('modal-cover').innerHTML = book.portada_url
+        ? `<img src="${book.portada_url}" alt="${(book.titulo||'').replace(/"/g,'&quot;')}">`
+        : `<i class='bx bx-book-alt'></i>`;
+
+    document.getElementById('modal-title').textContent = book.titulo || 'Sin título';
+    document.getElementById('modal-author').textContent = `Por ${book.autor || 'Autor desconocido'}`;
+
+    const meta = [book.editorial, book.edad_recomendada ? `Edad recomendada: ${book.edad_recomendada}` : ''].filter(Boolean).join(' · ');
+    const metaEl = document.getElementById('modal-meta');
+    metaEl.textContent = meta;
+    metaEl.style.display = meta ? '' : 'none';
+
+    document.getElementById('modal-badges').innerHTML = [
+        book.categoria ? `<span class="book-modal-badge cat">${book.categoria}</span>` : '',
+        book.edad_recomendada ? `<span class="book-modal-badge age">${book.edad_recomendada}</span>` : ''
+    ].join('');
+
+    document.getElementById('modal-synopsis').textContent = book.sinopsis || 'Sin sinopsis disponible para este libro.';
+
+    const statusEl = document.getElementById('modal-status');
+    statusEl.className = `book-modal-status ${disponible ? 'available' : 'out'}`;
+    statusEl.innerHTML = `<i class='bx ${disponible ? 'bx-check-circle' : 'bx-x-circle'}'></i>
+        ${disponible ? 'Disponible' : 'Agotado'}
+        <span style="font-weight:400;margin-left:.5rem;font-size:.85rem;opacity:.8">(${book.disponibles} disp.)</span>`;
+
+    const addBtn = document.getElementById('modal-add-btn');
+    if (addBtn) {
+        addBtn.disabled = !disponible;
+        addBtn.dataset.bookId = bookId;
+        addBtn.dataset.bookTitle = book.titulo || '';
+        addBtn.dataset.bookDisp = book.disponibles;
+    }
+
+    document.getElementById('book-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeBookModal = function() {
+    document.getElementById('book-modal').classList.remove('active');
+    document.body.style.overflow = '';
+};
+
+window.handleModalAdd = function() {
+    const btn = document.getElementById('modal-add-btn');
+    if (!btn) return;
+    const bookId = btn.dataset.bookId;
+    const bookTitle = btn.dataset.bookTitle;
+    const bookDisp = parseInt(btn.dataset.bookDisp, 10);
+    app.agregarAlCarrito(bookId, bookTitle, bookDisp);
+    closeBookModal();
+};
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBookModal(); });
