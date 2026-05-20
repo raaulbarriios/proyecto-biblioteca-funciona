@@ -10,11 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script>
-        // ===== URLs de los otros portales (actualiza cuando separes en branches) =====
-        const COLEGIOS_URL = '../colegios/'; 
-        const PUBLICO_URL  = '../publico/';  
-        // ==============================================================================
-
         // Protección de acceso admin
         document.addEventListener('DOMContentLoaded', () => {
             const user = JSON.parse(sessionStorage.getItem('bibliotech_user'));
@@ -169,10 +164,10 @@
                 Gestor del Inventario (Admin)
             </h1>
             <div>
-                <a id="link-colegios" href="#" onclick="window.open(COLEGIOS_URL,'_blank'); return false;" class="inline-block bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded shadow mr-2">
+                <a id="link-colegios" href="https://proyecto-biblioteca-funciona-colegios.pages.dev" target="_blank" class="inline-block bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded shadow mr-2">
                     Vista Colegios
                 </a>
-                <a id="link-publico" href="#" onclick="window.open(PUBLICO_URL,'_blank'); return false;" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow mr-2">
+                <a id="link-publico" href="https://proyecto-biblioteca-funciona-publico.pages.dev" target="_blank" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow mr-2">
                     Vista Pública
                 </a>
                 <button onclick="firebase.auth().signOut().then(() => { sessionStorage.removeItem('bibliotech_user'); window.location.reload(); }).catch(() => { sessionStorage.removeItem('bibliotech_user'); window.location.reload(); });" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded shadow">
