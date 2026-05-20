@@ -30,6 +30,34 @@ const app = {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => { const v = item.dataset.view; if(v) this.switchView(v); });
         });
+
+        // Búsqueda y Filtros
+        const globalSearch = document.getElementById('global-search');
+        if (globalSearch) {
+            globalSearch.addEventListener('input', (e) => {
+                const catSearch = document.getElementById('cat-search');
+                if (catSearch) catSearch.value = e.target.value;
+                if (this.state.activeView !== 'catalogo') {
+                    this.switchView('catalogo');
+                } else {
+                    this.renderBooks();
+                }
+            });
+        }
+
+        const catSearch = document.getElementById('cat-search');
+        if (catSearch) {
+            catSearch.addEventListener('input', (e) => {
+                const globalSearch = document.getElementById('global-search');
+                if (globalSearch) globalSearch.value = e.target.value;
+                this.renderBooks();
+            });
+        }
+        
+        const catFilter = document.getElementById('cat-cat-filter');
+        if (catFilter) {
+            catFilter.addEventListener('change', () => this.renderBooks());
+        }
     },
 
     renderLoginForm() {
@@ -228,6 +256,17 @@ const app = {
         db.collection('Libros').onSnapshot((snapshot) => {
             this.state.books = [];
             snapshot.forEach(doc => this.state.books.push({ id: doc.id, ...doc.data() }));
+            
+            // Cargar selector de categorías dinámicamente
+            const filterEl = document.getElementById('cat-cat-filter');
+            if (filterEl) {
+                const currentVal = filterEl.value;
+                const cats = [...new Set(this.state.books.map(b => b.categoria).filter(Boolean))].sort();
+                filterEl.innerHTML = '<option value="">Todas las categorías</option>' + 
+                    cats.map(c => `<option value="${c}">${c}</option>`).join('');
+                filterEl.value = currentVal;
+            }
+
             if (this.state.activeView === 'catalogo') this.renderBooks();
             this.updateDashboardStats();
         });
@@ -257,7 +296,33 @@ const app = {
     renderBooks() {
         const grid = document.getElementById('catalogo-grid'); if (!grid) return;
         grid.innerHTML = '';
-        this.state.books.forEach(book => {
+        
+        // Helper para normalizar caracteres y quitar acentos/mayúsculas
+        const normalizar = (texto) => (texto || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        
+        const qGlobal = normalizar(document.getElementById('global-search')?.value);
+        const qCat = normalizar(document.getElementById('cat-search')?.value);
+        const query = qGlobal || qCat;
+        const catFilter = document.getElementById('cat-cat-filter')?.value;
+        
+        const librosFiltrados = this.state.books.filter(book => {
+            const qMatch = !query || 
+                           normalizar(book.titulo).includes(query) ||
+                           normalizar(book.autor).includes(query) ||
+                           normalizar(book.categoria).includes(query) ||
+                           normalizar(book.editorial).includes(query);
+                           
+            const cMatch = !catFilter || book.categoria === catFilter;
+            
+            return qMatch && cMatch;
+        });
+
+        if (librosFiltrados.length === 0) {
+            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#64748b;">No se encontraron libros que coincidan con la búsqueda.</div>`;
+            return;
+        }
+
+        librosFiltrados.forEach(book => {
             const disponible = book.disponibles > 0;
             const card = document.createElement('div');
             card.style.cssText = "background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.05);border:1px solid #f1f5f9;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s;";
