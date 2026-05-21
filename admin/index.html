@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin – BiblioTech</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -34,9 +36,10 @@
                 togglePwBtn.addEventListener('click', () => {
                     const isPrivate = passwordInput.type === 'password';
                     passwordInput.type = isPrivate ? 'text' : 'password';
-                    togglePwBtn.innerHTML = isPrivate 
-                        ? `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>`
-                        : `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
+                    const icon = togglePwBtn.querySelector('i');
+                    if (icon) {
+                        icon.className = isPrivate ? 'bx bx-show text-xl' : 'bx bx-hide text-xl';
+                    }
                 });
             }
 
@@ -96,60 +99,58 @@
 <body class="bg-slate-50 font-sans antialiased min-h-screen">
 
     <!-- Pantalla de Login -->
-    <div id="login-screen" class="hidden min-h-screen flex items-center justify-center bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-950 px-4 relative overflow-hidden">
+    <div id="login-screen" class="hidden min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8fafc] to-[#e2e8f0] px-4 relative overflow-hidden">
         <!-- Orbes decorativos difuminados -->
-        <div class="absolute w-[500px] h-[500px] -top-40 -left-40 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"></div>
-        <div class="absolute w-[500px] h-[500px] -bottom-40 -right-40 bg-violet-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute w-[500px] h-[500px] -top-40 -left-40 bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute w-[500px] h-[500px] -bottom-40 -right-40 bg-blue-500/5 rounded-full blur-[120px] pointer-events-none"></div>
         
-        <div class="max-w-md w-full bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 p-8 rounded-2xl shadow-2xl relative z-10">
+        <div class="max-w-md w-full bg-white border border-slate-200/80 p-8 rounded-2xl shadow-xl relative z-10">
             <div class="text-center mb-8">
                 <div class="flex justify-center mb-4">
-                    <div class="p-3 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl shadow-inner">
-                        <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Ayuntamiento de Algeciras" class="w-12 h-auto filter invert opacity-90">
-                    </div>
+                    <img src="https://www.algecodar.site/" alt="Ayuntamiento de Algeciras" class="w-48 h-auto" onerror="this.src='https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png'">
                 </div>
-                <h1 class="text-3xl font-extrabold text-white tracking-tight">BiblioTech</h1>
-                <p class="text-slate-400 mt-2 text-sm">Portal de Administración</p>
+                <h1 class="text-2xl font-bold text-slate-800 tracking-tight">BiblioTech</h1>
+                <p class="text-slate-500 mt-1 text-sm font-medium">Portal de Administración</p>
             </div>
             
             <form id="login-form" class="space-y-6">
                 <div>
-                    <label for="username" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Correo electrónico</label>
+                    <label for="username" class="block text-sm font-medium text-slate-700 mb-2">Correo electrónico</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" /></svg>
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                            <i class='bx bx-envelope text-xl'></i>
                         </span>
                         <input type="email" id="username" placeholder="admin@correo.com" autocomplete="email" required
-                               class="w-full pl-10 pr-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                               class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                     </div>
                 </div>
                 
                 <div>
-                    <label for="password" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Contraseña</label>
+                    <label for="password" class="block text-sm font-medium text-slate-700 mb-2">Contraseña</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                            <i class='bx bx-lock-alt text-xl'></i>
                         </span>
                         <input type="password" id="password" placeholder="••••••••" required
-                               class="w-full pl-10 pr-10 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                        <button type="button" id="toggle-pw" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300">
-                            <svg id="eye-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                               class="w-full pl-10 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        <button type="button" id="toggle-pw" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                            <i class='bx bx-show text-xl'></i>
                         </button>
                     </div>
                 </div>
                 
-                <div id="login-error" class="hidden text-sm bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-xl"></div>
+                <div id="login-error" class="hidden text-sm bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl"></div>
                 
                 <button type="submit" id="login-btn"
-                        class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 active:scale-[0.98]">
+                        class="w-full py-3 px-4 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold rounded-xl transition-all shadow-md shadow-blue-500/10 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-[0.98]">
                     <span id="login-btn-text">Iniciar Sesión</span>
                 </button>
             </form>
             
-            <div class="mt-8 pt-6 border-t border-slate-800/60 flex justify-center">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                    Panel Seguro (Admin)
+            <div class="mt-8 pt-6 border-t border-slate-100 flex justify-center">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                    <i class='bx bxs-shield text-sm'></i>
+                    Administrador
                 </span>
             </div>
         </div>
