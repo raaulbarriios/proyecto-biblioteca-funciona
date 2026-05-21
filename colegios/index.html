@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BiblioTech – Portal Colegios</title>
+    <title>BiblioTech ÔÇô Portal Colegios</title>
     <meta name="description" content="Portal de reserva de libros para colegios de Algeciras.">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,8 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-    <script src="../firebase-config.js"></script>
+    <script src="firebase-config.js"></script>
 </head>
 <body>
 
@@ -37,7 +36,7 @@
             <div id="dynamic-login-fields"></div>
             <div id="login-error" class="error-msg hidden"></div>
             <button type="submit" class="btn-primary full-w" id="login-btn">
-                <span id="login-btn-text">Iniciar Sesión</span>
+                <span id="login-btn-text">Iniciar Sesi├│n</span>
                 <span id="login-spinner" class="btn-spinner hidden"></span>
             </button>
         </form>
@@ -62,7 +61,7 @@
             <p class="nav-section-label">Mi Panel</p>
             <ul>
                 <li class="nav-item active" data-view="dashboard"><i class='bx bxs-dashboard'></i><span>Dashboard</span></li>
-                <li class="nav-item" data-view="catalogo"><i class='bx bxs-book-open'></i><span>Catálogo</span></li>
+                <li class="nav-item" data-view="catalogo"><i class='bx bxs-book-open'></i><span>Cat├ílogo</span></li>
                 <li class="nav-item" data-view="mis-pedidos"><i class='bx bxs-time-five'></i><span>Mis Pedidos</span></li>
             </ul>
         </nav>
@@ -71,11 +70,11 @@
             <div class="user-info">
                 <div class="user-avatar" id="user-avatar-char">U</div>
                 <div class="user-details">
-                    <span id="current-user-name">–</span>
-                    <small id="current-user-role">–</small>
+                    <span id="current-user-name">ÔÇô</span>
+                    <small id="current-user-role">ÔÇô</small>
                 </div>
             </div>
-            <button id="logout-btn" title="Cerrar Sesión"><i class='bx bx-log-out'></i></button>
+            <button id="logout-btn" title="Cerrar Sesi├│n"><i class='bx bx-log-out'></i></button>
         </div>
     </aside>
 
@@ -112,15 +111,15 @@
                 </div>
             </section>
 
-            <!-- SCHOOL: CATÁLOGO -->
+            <!-- SCHOOL: CAT├üLOGO -->
             <section id="view-catalogo" class="view">
                 <div class="view-header">
                     <div class="filter-bar">
                         <div class="search-wrap-sm">
                             <i class='bx bx-search'></i>
-                            <input type="text" id="cat-search" placeholder="Buscar en el catálogo...">
+                            <input type="text" id="cat-search" placeholder="Buscar en el cat├ílogo...">
                         </div>
-                        <select id="cat-cat-filter"><option value="">Todas las categorías</option></select>
+                        <select id="cat-cat-filter"><option value="">Todas las categor├¡as</option></select>
                     </div>
                     <div class="realtime-badge"><span class="rt-dot"></span>Tiempo real</div>
                 </div>
@@ -175,5 +174,94 @@
 </button>
 
 <script src="./script.js"></script>
+
+<style>
+/* ÔöÇÔöÇ BOOK DETAIL MODAL (Colegios) ÔöÇÔöÇ */
+.book-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,0.82); backdrop-filter: blur(8px);
+    z-index: 2000; align-items: center; justify-content: center; padding: 1rem;
+}
+.book-modal-overlay.active { display: flex; }
+.book-modal-card {
+    background: #fff; border-radius: 24px; max-width: 780px; width: 100%;
+    display: grid; grid-template-columns: 240px 1fr;
+    max-height: 90vh; overflow: hidden; position: relative;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    animation: modalIn 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+.book-modal-cover {
+    background: #f1f5f9; display: flex; align-items: center;
+    justify-content: center; overflow: hidden; min-height: 380px;
+}
+.book-modal-cover img { width: 100%; height: 100%; object-fit: cover; }
+.book-modal-cover .bx { font-size: 6rem; color: #cbd5e1; }
+.book-modal-body {
+    padding: 1.75rem; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 0.85rem;
+}
+.book-modal-close {
+    position: absolute; top: 0.75rem; right: 0.75rem;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(0,0,0,0.08); border: none; cursor: pointer;
+    font-size: 1rem; font-weight: 700; color: #475569;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, transform 0.15s; z-index: 10;
+}
+.book-modal-close:hover { background: rgba(0,0,0,0.16); transform: scale(1.1); }
+.book-modal-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.book-modal-badge { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 700; }
+.book-modal-badge.cat { background: #eff6ff; color: #2563eb; }
+.book-modal-badge.age { background: #faf5ff; color: #7c3aed; }
+.book-modal-title { font-size: 1.45rem; font-weight: 800; color: #1e293b; line-height: 1.2; margin: 0; }
+.book-modal-author { font-size: 0.95rem; color: #64748b; margin: 0; }
+.book-modal-meta { font-size: 0.8rem; color: #94a3b8; }
+.book-modal-divider { border: none; border-top: 1px solid #e2e8f0; margin: 0; }
+.book-modal-synopsis { font-size: 0.88rem; color: #475569; line-height: 1.75; flex: 1; margin: 0; }
+.book-modal-status {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-weight: 700; font-size: 0.9rem;
+    padding: 0.6rem 0.9rem; border-radius: 10px;
+}
+.book-modal-status.available { background: #ecfdf5; color: #059669; }
+.book-modal-status.out { background: #fef2f2; color: #dc2626; }
+.book-modal-add-btn {
+    margin-top: auto; padding: 0.75rem 1.25rem;
+    background: #2563eb; color: #fff; border: none; border-radius: 12px;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    transition: background 0.2s, transform 0.15s;
+}
+.book-modal-add-btn:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-1px); }
+.book-modal-add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 600px) {
+    .book-modal-card { grid-template-columns: 1fr; }
+    .book-modal-cover { min-height: 200px; }
+    .book-modal-body { padding: 1.25rem; }
+    .book-modal-title { font-size: 1.15rem; }
+}
+</style>
+
+<!-- MODAL DETALLE DE LIBRO -->
+<div id="book-modal" class="book-modal-overlay" onclick="if(event.target===this)closeBookModal()">
+    <div class="book-modal-card">
+        <button class="book-modal-close" onclick="closeBookModal()" aria-label="Cerrar">Ô£ò</button>
+        <div class="book-modal-cover" id="modal-cover"></div>
+        <div class="book-modal-body">
+            <div class="book-modal-badges" id="modal-badges"></div>
+            <h2 class="book-modal-title" id="modal-title"></h2>
+            <p class="book-modal-author" id="modal-author"></p>
+            <p class="book-modal-meta" id="modal-meta"></p>
+            <hr class="book-modal-divider">
+            <p class="book-modal-synopsis" id="modal-synopsis"></p>
+            <div class="book-modal-status" id="modal-status"></div>
+            <button class="book-modal-add-btn" id="modal-add-btn" onclick="handleModalAdd()">
+                <i class='bx bx-cart-add'></i> A├▒adir al carrito
+            </button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

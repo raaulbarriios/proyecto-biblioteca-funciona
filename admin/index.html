@@ -1,48 +1,177 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin – BiblioTech</title>
+    <title>Panel Admin ÔÇô BiblioTech</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script>
-        // ===== URLs de los otros portales (actualiza cuando separes en branches) =====
-        const COLEGIOS_URL = '../colegios/'; 
-        const PUBLICO_URL  = '../publico/';  
-        // ==============================================================================
+        // Protecci├│n de acceso admin
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(sessionStorage.getItem('bibliotech_user'));
+            const adminPanel = document.getElementById('admin-panel');
+            const loginScreen = document.getElementById('login-screen');
+            
+            if (user && user.role === 'admin') {
+                adminPanel.classList.remove('hidden');
+                loginScreen.classList.add('hidden');
+            } else {
+                adminPanel.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+                setupLoginLogic();
+            }
+        });
 
-        // Protección de acceso admin
-        const user = JSON.parse(sessionStorage.getItem('bibliotech_user'));
-        if (!user || user.role !== 'admin') {
-            alert("Acceso denegado. Esta página es solo para administradores.");
-            window.location.href = './';
+        function setupLoginLogic() {
+            // Alternar visibilidad de contrase├▒a
+            const togglePwBtn = document.getElementById('toggle-pw');
+            const passwordInput = document.getElementById('password');
+            if (togglePwBtn && passwordInput) {
+                togglePwBtn.addEventListener('click', () => {
+                    const isPrivate = passwordInput.type === 'password';
+                    passwordInput.type = isPrivate ? 'text' : 'password';
+                    togglePwBtn.innerHTML = isPrivate 
+                        ? `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>`
+                        : `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
+                });
+            }
+
+            // L├│gica de formulario de login
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('username').value.toLowerCase().trim();
+                    const pass = document.getElementById('password').value;
+                    const errorMsg = document.getElementById('login-error');
+                    const loginBtnText = document.getElementById('login-btn-text');
+
+                    if (!email || !pass) {
+                        errorMsg.textContent = "Introduce correo y contrase├▒a";
+                        errorMsg.classList.remove('hidden');
+                        return;
+                    }
+
+                    loginBtnText.innerText = "Iniciando...";
+                    errorMsg.classList.add('hidden');
+
+                    try {
+                        // Iniciar sesi├│n en Firebase Auth
+                        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, pass);
+                        const userEmail = userCredential.user.email;
+
+                        // Validar rol de administrador
+                        if (!userEmail.includes('admin')) {
+                            errorMsg.textContent = "Acceso denegado. Esta p├ígina es solo para administradores.";
+                            errorMsg.classList.remove('hidden');
+                            loginBtnText.innerText = "Iniciar Sesi├│n";
+                            await firebase.auth().signOut();
+                            return;
+                        }
+
+                        // Guardar usuario en sessionStorage
+                        const currentUser = { name: 'Administrador', role: 'admin', email: userEmail };
+                        sessionStorage.setItem('bibliotech_user', JSON.stringify(currentUser));
+                        
+                        // Recargar la p├ígina para activar los snapshots de la base de datos
+                        window.location.reload();
+                    } catch (error) {
+                        console.error("Error Auth:", error);
+                        errorMsg.textContent = "Correo o contrase├▒a incorrectos.";
+                        errorMsg.classList.remove('hidden');
+                        loginBtnText.innerText = "Iniciar Sesi├│n";
+                    }
+                });
+            }
         }
     </script>
     <style>
         body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="p-8">
+<body class="bg-slate-50 font-sans antialiased min-h-screen">
 
-    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="hidden min-h-screen flex items-center justify-center bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-950 px-4 relative overflow-hidden">
+        <!-- Orbes decorativos difuminados -->
+        <div class="absolute w-[500px] h-[500px] -top-40 -left-40 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute w-[500px] h-[500px] -bottom-40 -right-40 bg-violet-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        
+        <div class="max-w-md w-full bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 p-8 rounded-2xl shadow-2xl relative z-10">
+            <div class="text-center mb-8">
+                <div class="flex justify-center mb-4">
+                    <div class="p-3 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl shadow-inner">
+                        <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Ayuntamiento de Algeciras" class="w-12 h-auto filter invert opacity-90">
+                    </div>
+                </div>
+                <h1 class="text-3xl font-extrabold text-white tracking-tight">BiblioTech</h1>
+                <p class="text-slate-400 mt-2 text-sm">Portal de Administraci├│n</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="username" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Correo electr├│nico</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" /></svg>
+                        </span>
+                        <input type="email" id="username" placeholder="admin@correo.com" autocomplete="email" required
+                               class="w-full pl-10 pr-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Contrase├▒a</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        </span>
+                        <input type="password" id="password" placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó" required
+                               class="w-full pl-10 pr-10 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        <button type="button" id="toggle-pw" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300">
+                            <svg id="eye-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="login-error" class="hidden text-sm bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-xl"></div>
+                
+                <button type="submit" id="login-btn"
+                        class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 active:scale-[0.98]">
+                    <span id="login-btn-text">Iniciar Sesi├│n</span>
+                </button>
+            </form>
+            
+            <div class="mt-8 pt-6 border-t border-slate-800/60 flex justify-center">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    Panel Seguro (Admin)
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Administraci├│n -->
+    <div id="admin-panel" class="hidden p-8">
+        <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-gray-800 flex items-center">
                 <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Algeciras" class="w-10 h-auto mr-3">
                 Gestor del Inventario (Admin)
             </h1>
             <div>
-                <a id="link-colegios" href="#" onclick="window.open(COLEGIOS_URL,'_blank'); return false;" class="inline-block bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded shadow mr-2">
+                <a id="link-colegios" href="https://proyecto-biblioteca-funciona-colegios.pages.dev" target="_blank" class="inline-block bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded shadow mr-2">
                     Vista Colegios
                 </a>
-                <a id="link-publico" href="#" onclick="window.open(PUBLICO_URL,'_blank'); return false;" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow mr-2">
-                    Vista Pública
+                <a id="link-publico" href="https://proyecto-biblioteca-funciona.pages.dev" target="_blank" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow mr-2">
+                    Vista P├║blica
                 </a>
-                <button onclick="sessionStorage.removeItem('bibliotech_user'); window.location.reload();" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded shadow">
-                    Cerrar Sesión
+                <button onclick="firebase.auth().signOut().then(() => { sessionStorage.removeItem('bibliotech_user'); window.location.reload(); }).catch(() => { sessionStorage.removeItem('bibliotech_user'); window.location.reload(); });" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded shadow">
+                    Cerrar Sesi├│n
                 </button>
             </div>
         </div>
@@ -50,7 +179,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <!-- Formulario -->
             <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <h3 id="form-title" class="text-xl font-semibold text-gray-700 mb-4">Añadir Libro</h3>
+                <h3 id="form-title" class="text-xl font-semibold text-gray-700 mb-4">A├▒adir Libro</h3>
                 <input type="hidden" id="book-id">
 
                 <div id="dynamic-fields"></div>
@@ -58,7 +187,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Imagen de Portada (Opcional)</label>
                     <input type="file" id="book-cover" accept="image/*" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <p class="text-xs text-gray-500 mt-1">Admite JPG, PNG, WebP… La imagen se comprime automáticamente.</p>
+                    <p class="text-xs text-gray-500 mt-1">Admite JPG, PNG, WebPÔÇª La imagen se comprime autom├íticamente.</p>
                 </div>
 
                 <div class="flex gap-2 mt-6">
@@ -77,8 +206,8 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Portada</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título / Autor</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">T├¡tulo / Autor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categor├¡a</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                         </tr>
@@ -109,7 +238,8 @@
                 </tbody>
             </table>
         </div>
-    </div>
+        </div>
+    </div> <!-- Fin de #admin-panel -->
 
     <script src="gestor_bd.js"></script>
 </body>

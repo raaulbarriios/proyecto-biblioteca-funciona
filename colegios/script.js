@@ -1,5 +1,5 @@
-/**
- * BiblioTech – Script portal Colegios
+﻿/**
+ * BiblioTech ÔÇô Script portal Colegios
  */
 const app = {
     state: { currentUser: null, books: [], activeView: 'dashboard', cart: [] },
@@ -16,7 +16,7 @@ const app = {
                 sessionStorage.removeItem('bibliotech_user');
                 this.state.currentUser = null;
                 const errorMsg = document.getElementById('login-error');
-                errorMsg.textContent = 'Los administradores deben acceder desde el portal de administración.';
+                errorMsg.textContent = 'Los administradores deben acceder desde el portal de administraci├│n.';
                 errorMsg.classList.remove('hidden');
                 return;
             }
@@ -30,6 +30,34 @@ const app = {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => { const v = item.dataset.view; if(v) this.switchView(v); });
         });
+
+        // B├║squeda y Filtros
+        const globalSearch = document.getElementById('global-search');
+        if (globalSearch) {
+            globalSearch.addEventListener('input', (e) => {
+                const catSearch = document.getElementById('cat-search');
+                if (catSearch) catSearch.value = e.target.value;
+                if (this.state.activeView !== 'catalogo') {
+                    this.switchView('catalogo');
+                } else {
+                    this.renderBooks();
+                }
+            });
+        }
+
+        const catSearch = document.getElementById('cat-search');
+        if (catSearch) {
+            catSearch.addEventListener('input', (e) => {
+                const globalSearch = document.getElementById('global-search');
+                if (globalSearch) globalSearch.value = e.target.value;
+                this.renderBooks();
+            });
+        }
+        
+        const catFilter = document.getElementById('cat-cat-filter');
+        if (catFilter) {
+            catFilter.addEventListener('change', () => this.renderBooks());
+        }
     },
 
     renderLoginForm() {
@@ -37,15 +65,15 @@ const app = {
         if (!container) return;
         container.innerHTML = `
             <div class="form-group">
-                <label for="username">Correo electrónico</label>
+                <label for="username">Correo electr├│nico</label>
                 <div class="input-wrap"><i class='bx bx-envelope'></i>
                     <input type="email" id="username" placeholder="tu@colegio.com" autocomplete="email" required>
                 </div>
             </div>
             <div class="form-group">
-                <label for="password">Contraseña</label>
+                <label for="password">Contrase├▒a</label>
                 <div class="input-wrap"><i class='bx bx-lock-alt'></i>
-                    <input type="password" id="password" placeholder="••••••••" required>
+                    <input type="password" id="password" placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó" required>
                     <button type="button" id="toggle-pw" class="pw-toggle"><i class='bx bx-show'></i></button>
                 </div>
             </div>`;
@@ -61,7 +89,7 @@ const app = {
         const pass = document.getElementById('password').value;
         const errorMsg = document.getElementById('login-error');
         const loginBtnText = document.getElementById('login-btn-text');
-        if (!email || !pass) { errorMsg.textContent = "Introduce correo y contraseña"; errorMsg.classList.remove('hidden'); return; }
+        if (!email || !pass) { errorMsg.textContent = "Introduce correo y contrase├▒a"; errorMsg.classList.remove('hidden'); return; }
         if (loginBtnText) loginBtnText.innerText = "Iniciando...";
         errorMsg.classList.add('hidden');
         try {
@@ -70,9 +98,9 @@ const app = {
             // Usuario detectado como admin: bloquear acceso
             if (userEmail.includes('admin')) {
                 const errorMsg = document.getElementById('login-error');
-                errorMsg.textContent = 'Los administradores deben acceder desde el portal de administración.';
+                errorMsg.textContent = 'Los administradores deben acceder desde el portal de administraci├│n.';
                 errorMsg.classList.remove('hidden');
-                if (loginBtnText) loginBtnText.innerText = 'Iniciar Sesión';
+                if (loginBtnText) loginBtnText.innerText = 'Iniciar Sesi├│n';
                 try { await firebase.auth().signOut(); } catch(e) {}
                 return;
             }
@@ -80,12 +108,12 @@ const app = {
             this.state.currentUser = { name, role: 'colegio', email: userEmail };
             sessionStorage.setItem('bibliotech_user', JSON.stringify(this.state.currentUser));
             document.getElementById('login-form').reset();
-            if (loginBtnText) loginBtnText.innerText = "Iniciar Sesión";
+            if (loginBtnText) loginBtnText.innerText = "Iniciar Sesi├│n";
             this.showApp();
         } catch (error) {
-            errorMsg.textContent = "Correo o contraseña incorrectos.";
+            errorMsg.textContent = "Correo o contrase├▒a incorrectos.";
             errorMsg.classList.remove('hidden');
-            if (loginBtnText) loginBtnText.innerText = "Iniciar Sesión";
+            if (loginBtnText) loginBtnText.innerText = "Iniciar Sesi├│n";
         }
     },
 
@@ -115,17 +143,17 @@ const app = {
         if (!this.state.currentUser) return;
         const existing = this.state.cart.find(i => i.id === id);
         if (existing) {
-            const qty = prompt(`"${titulo}" ya está en el carrito (${existing.cantidad} und.)\n¿Nueva cantidad?`, existing.cantidad);
+            const qty = prompt(`"${titulo}" ya est├í en el carrito (${existing.cantidad} und.)\n┬┐Nueva cantidad?`, existing.cantidad);
             if (!qty) return;
             const n = parseInt(qty);
-            if (isNaN(n) || n <= 0) { alert('Cantidad no válida.'); return; }
+            if (isNaN(n) || n <= 0) { alert('Cantidad no v├ílida.'); return; }
             if (n > disponibles) { alert(`Solo hay ${disponibles} disponibles.`); return; }
             existing.cantidad = n;
         } else {
-            const qty = prompt(`¿Cuántos ejemplares de "${titulo}" quieres reservar?`, '1');
+            const qty = prompt(`┬┐Cu├íntos ejemplares de "${titulo}" quieres reservar?`, '1');
             if (!qty) return;
             const n = parseInt(qty);
-            if (isNaN(n) || n <= 0) { alert('Cantidad no válida.'); return; }
+            if (isNaN(n) || n <= 0) { alert('Cantidad no v├ílida.'); return; }
             if (n > disponibles) { alert(`Solo hay ${disponibles} disponibles.`); return; }
             this.state.cart.push({ id, titulo, cantidad: n, disponibles });
         }
@@ -141,9 +169,9 @@ const app = {
         if (!itemsEl) return;
         const totalLibros = this.state.cart.reduce((s, i) => s + i.cantidad, 0);
         if (countEl) countEl.textContent = this.state.cart.length;
-        if (summaryEl) summaryEl.textContent = this.state.cart.length > 0 ? `${this.state.cart.length} título(s) • ${totalLibros} ejemplar(es)` : '';
+        if (summaryEl) summaryEl.textContent = this.state.cart.length > 0 ? `${this.state.cart.length} t├¡tulo(s) ÔÇó ${totalLibros} ejemplar(es)` : '';
         if (this.state.cart.length === 0) {
-            itemsEl.innerHTML = `<div class="cart-empty"><i class='bx bx-cart-alt'></i>Tu carrito está vacío.</div>`;
+            itemsEl.innerHTML = `<div class="cart-empty"><i class='bx bx-cart-alt'></i>Tu carrito est├í vac├¡o.</div>`;
             return;
         }
         itemsEl.innerHTML = this.state.cart.map((item, idx) => `
@@ -178,9 +206,9 @@ const app = {
     closeCart() { document.getElementById('cart-panel').classList.remove('open'); document.getElementById('cart-overlay').classList.add('hidden'); },
 
     async confirmarPedido() {
-        if (this.state.cart.length === 0) { alert('El carrito está vacío.'); return; }
+        if (this.state.cart.length === 0) { alert('El carrito est├í vac├¡o.'); return; }
         const total = this.state.cart.reduce((s, i) => s + i.cantidad, 0);
-        if (!confirm(`¿Confirmar pedido de ${this.state.cart.length} título(s) con ${total} ejemplar(es)?`)) return;
+        if (!confirm(`┬┐Confirmar pedido de ${this.state.cart.length} t├¡tulo(s) con ${total} ejemplar(es)?`)) return;
         const btn = document.getElementById('confirm-order-btn');
         if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
         try {
@@ -206,7 +234,7 @@ const app = {
             });
             this.state.cart = []; this.renderCart(); this.closeCart();
             document.getElementById('cart-fab').classList.add('hidden');
-            alert('¡Pedido enviado! El stock ha sido actualizado.');
+            alert('┬íPedido enviado! El stock ha sido actualizado.');
         } catch (error) {
             alert('Error al enviar el pedido: ' + error.message);
         } finally {
@@ -228,6 +256,17 @@ const app = {
         db.collection('Libros').onSnapshot((snapshot) => {
             this.state.books = [];
             snapshot.forEach(doc => this.state.books.push({ id: doc.id, ...doc.data() }));
+            
+            // Cargar selector de categor├¡as din├ímicamente
+            const filterEl = document.getElementById('cat-cat-filter');
+            if (filterEl) {
+                const currentVal = filterEl.value;
+                const cats = [...new Set(this.state.books.map(b => b.categoria).filter(Boolean))].sort();
+                filterEl.innerHTML = '<option value="">Todas las categor├¡as</option>' + 
+                    cats.map(c => `<option value="${c}">${c}</option>`).join('');
+                filterEl.value = currentVal;
+            }
+
             if (this.state.activeView === 'catalogo') this.renderBooks();
             this.updateDashboardStats();
         });
@@ -248,7 +287,7 @@ const app = {
                     <td style="font-weight:bold;">${res.cantidad}</td>
                     <td>${new Date(res.fecha).toLocaleString('es-ES')}</td>
                     <td><span class="status-pill reservado">Reservada</span></td>
-                    <td style="color:#64748b;font-style:italic;">En revisión por el administrador</td>`;
+                    <td style="color:#64748b;font-style:italic;">En revisi├│n por el administrador</td>`;
                 tbody.appendChild(tr);
             });
         });
@@ -257,10 +296,43 @@ const app = {
     renderBooks() {
         const grid = document.getElementById('catalogo-grid'); if (!grid) return;
         grid.innerHTML = '';
-        this.state.books.forEach(book => {
+        
+        // Helper para normalizar caracteres y quitar acentos/may├║sculas
+        const normalizar = (texto) => (texto || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        
+        const qGlobal = normalizar(document.getElementById('global-search')?.value);
+        const qCat = normalizar(document.getElementById('cat-search')?.value);
+        const query = qGlobal || qCat;
+        const catFilter = document.getElementById('cat-cat-filter')?.value;
+        
+        const librosFiltrados = this.state.books.filter(book => {
+            const qMatch = !query || 
+                           normalizar(book.titulo).includes(query) ||
+                           normalizar(book.autor).includes(query) ||
+                           normalizar(book.categoria).includes(query) ||
+                           normalizar(book.editorial).includes(query);
+                           
+            const cMatch = !catFilter || book.categoria === catFilter;
+            
+            return qMatch && cMatch;
+        });
+
+        if (librosFiltrados.length === 0) {
+            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#64748b;">No se encontraron libros que coincidan con la b├║squeda.</div>`;
+            return;
+        }
+
+        librosFiltrados.forEach(book => {
             const disponible = book.disponibles > 0;
             const card = document.createElement('div');
-            card.style.cssText = "background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.05);border:1px solid #f1f5f9;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s;";
+            card.style.cssText = "background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.05);border:1px solid #f1f5f9;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;";
+            
+            // Open modal on click (except when clicking add button)
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('button') || e.target.closest('a')) return;
+                openBookModal(book.id);
+            });
+
             const coverHtml = book.portada_url
                 ? `<img src="${book.portada_url}" style="width:100%;height:200px;object-fit:cover;display:block;background:#f8fafc;">`
                 : `<div style="width:100%;height:180px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#cbd5e1;"><i class='bx bx-book-alt' style="font-size:3rem;"></i></div>`;
@@ -271,14 +343,14 @@ const app = {
                         <span style="font-size:.7rem;padding:3px 8px;background:#eff6ff;color:#2563eb;border-radius:12px;font-weight:700;white-space:nowrap;">${book.edad_recomendada||'Todas'}</span>
                     </div>
                     <p style="color:#64748b;font-size:.85rem;margin:0 0 4px;">Por <strong style="color:#475569">${book.autor}</strong></p>
-                    <p style="font-size:.75rem;color:#94a3b8;margin:0 0 12px;">${book.editorial||''} • <span style="color:#64748b">${book.categoria||'General'}</span></p>
+                    <p style="font-size:.75rem;color:#94a3b8;margin:0 0 12px;">${book.editorial||''} ÔÇó <span style="color:#64748b">${book.categoria||'General'}</span></p>
                     <div style="flex-grow:1;"><p style="font-size:.85rem;color:#475569;line-height:1.5;margin-bottom:1.25rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${book.sinopsis||'Sin sinopsis.'}</p></div>
                     <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #f1f5f9;padding-top:1rem;">
                         <span style="color:${disponible?'#10b981':'#ef4444'};font-weight:700;font-size:.85rem;">${disponible?'Disponible':'Agotado'} (${book.disponibles} disp.)</span>
                         <button onclick="app.agregarAlCarrito('${book.id}','${(book.titulo||'').replace(/'/g,"\\'")}',${book.disponibles})"
                             class="btn-primary" style="padding:8px 16px;font-size:.8rem;display:inline-flex;align-items:center;gap:6px;width:auto;border-radius:8px;"
                             ${!disponible?'disabled style="opacity:.5;cursor:not-allowed;"':''}>
-                            <i class='bx bx-cart-add' style="font-size:1.1rem;"></i> Añadir
+                            <i class='bx bx-cart-add' style="font-size:1.1rem;"></i> A├▒adir
                         </button>
                     </div>
                 </div>`;
@@ -296,7 +368,7 @@ const app = {
                 <h2 style="margin:10px 0 0;font-size:36px;color:#1e3a8a">${total}</h2>
             </div>
             <div style="background:#ecfdf5;padding:20px;border-radius:10px;border:1px solid #a7f3d0;">
-                <p style="margin:0;font-size:14px;color:#047857;text-transform:uppercase;font-weight:bold">Títulos Disponibles</p>
+                <p style="margin:0;font-size:14px;color:#047857;text-transform:uppercase;font-weight:bold">T├¡tulos Disponibles</p>
                 <h2 style="margin:10px 0 0;font-size:36px;color:#065f46">${disp}</h2>
             </div>`;
     }
@@ -304,3 +376,62 @@ const app = {
 
 document.addEventListener('DOMContentLoaded', () => app.init());
 window.app = app;
+
+window.openBookModal = function(bookId) {
+    const book = app.state.books.find(b => b.id === bookId);
+    if (!book) return;
+    const disponible = book.disponibles > 0;
+
+    document.getElementById('modal-cover').innerHTML = book.portada_url
+        ? `<img src="${book.portada_url}" alt="${(book.titulo||'').replace(/"/g,'&quot;')}">`
+        : `<i class='bx bx-book-alt'></i>`;
+
+    document.getElementById('modal-title').textContent = book.titulo || 'Sin t├¡tulo';
+    document.getElementById('modal-author').textContent = `Por ${book.autor || 'Autor desconocido'}`;
+
+    const meta = [book.editorial, book.edad_recomendada ? `Edad recomendada: ${book.edad_recomendada}` : ''].filter(Boolean).join(' ┬À ');
+    const metaEl = document.getElementById('modal-meta');
+    metaEl.textContent = meta;
+    metaEl.style.display = meta ? '' : 'none';
+
+    document.getElementById('modal-badges').innerHTML = [
+        book.categoria ? `<span class="book-modal-badge cat">${book.categoria}</span>` : '',
+        book.edad_recomendada ? `<span class="book-modal-badge age">${book.edad_recomendada}</span>` : ''
+    ].join('');
+
+    document.getElementById('modal-synopsis').textContent = book.sinopsis || 'Sin sinopsis disponible para este libro.';
+
+    const statusEl = document.getElementById('modal-status');
+    statusEl.className = `book-modal-status ${disponible ? 'available' : 'out'}`;
+    statusEl.innerHTML = `<i class='bx ${disponible ? 'bx-check-circle' : 'bx-x-circle'}'></i>
+        ${disponible ? 'Disponible' : 'Agotado'}
+        <span style="font-weight:400;margin-left:.5rem;font-size:.85rem;opacity:.8">(${book.disponibles} disp.)</span>`;
+
+    const addBtn = document.getElementById('modal-add-btn');
+    if (addBtn) {
+        addBtn.disabled = !disponible;
+        addBtn.dataset.bookId = bookId;
+        addBtn.dataset.bookTitle = book.titulo || '';
+        addBtn.dataset.bookDisp = book.disponibles;
+    }
+
+    document.getElementById('book-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeBookModal = function() {
+    document.getElementById('book-modal').classList.remove('active');
+    document.body.style.overflow = '';
+};
+
+window.handleModalAdd = function() {
+    const btn = document.getElementById('modal-add-btn');
+    if (!btn) return;
+    const bookId = btn.dataset.bookId;
+    const bookTitle = btn.dataset.bookTitle;
+    const bookDisp = parseInt(btn.dataset.bookDisp, 10);
+    app.agregarAlCarrito(bookId, bookTitle, bookDisp);
+    closeBookModal();
+};
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBookModal(); });
