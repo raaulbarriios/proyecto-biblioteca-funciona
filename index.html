@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin ÔÇô BiblioTech</title>
+    <title>Panel Admin – BiblioTech</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script>
-        // Protecci├│n de acceso admin
+        // Protección de acceso admin
         document.addEventListener('DOMContentLoaded', () => {
             const user = JSON.parse(sessionStorage.getItem('bibliotech_user'));
             const adminPanel = document.getElementById('admin-panel');
@@ -27,7 +27,7 @@
         });
 
         function setupLoginLogic() {
-            // Alternar visibilidad de contrase├▒a
+            // Alternar visibilidad de contraseña
             const togglePwBtn = document.getElementById('toggle-pw');
             const passwordInput = document.getElementById('password');
             if (togglePwBtn && passwordInput) {
@@ -40,7 +40,7 @@
                 });
             }
 
-            // L├│gica de formulario de login
+            // Lógica de formulario de login
             const loginForm = document.getElementById('login-form');
             if (loginForm) {
                 loginForm.addEventListener('submit', async (e) => {
@@ -51,7 +51,7 @@
                     const loginBtnText = document.getElementById('login-btn-text');
 
                     if (!email || !pass) {
-                        errorMsg.textContent = "Introduce correo y contrase├▒a";
+                        errorMsg.textContent = "Introduce correo y contraseña";
                         errorMsg.classList.remove('hidden');
                         return;
                     }
@@ -60,15 +60,15 @@
                     errorMsg.classList.add('hidden');
 
                     try {
-                        // Iniciar sesi├│n en Firebase Auth
+                        // Iniciar sesión en Firebase Auth
                         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, pass);
                         const userEmail = userCredential.user.email;
 
                         // Validar rol de administrador
                         if (!userEmail.includes('admin')) {
-                            errorMsg.textContent = "Acceso denegado. Esta p├ígina es solo para administradores.";
+                            errorMsg.textContent = "Acceso denegado. Esta página es solo para administradores.";
                             errorMsg.classList.remove('hidden');
-                            loginBtnText.innerText = "Iniciar Sesi├│n";
+                            loginBtnText.innerText = "Iniciar Sesión";
                             await firebase.auth().signOut();
                             return;
                         }
@@ -77,13 +77,13 @@
                         const currentUser = { name: 'Administrador', role: 'admin', email: userEmail };
                         sessionStorage.setItem('bibliotech_user', JSON.stringify(currentUser));
                         
-                        // Recargar la p├ígina para activar los snapshots de la base de datos
+                        // Recargar la página para activar los snapshots de la base de datos
                         window.location.reload();
                     } catch (error) {
                         console.error("Error Auth:", error);
-                        errorMsg.textContent = "Correo o contrase├▒a incorrectos.";
+                        errorMsg.textContent = "Correo o contraseña incorrectos.";
                         errorMsg.classList.remove('hidden');
-                        loginBtnText.innerText = "Iniciar Sesi├│n";
+                        loginBtnText.innerText = "Iniciar Sesión";
                     }
                 });
             }
@@ -109,12 +109,12 @@
                     </div>
                 </div>
                 <h1 class="text-3xl font-extrabold text-white tracking-tight">BiblioTech</h1>
-                <p class="text-slate-400 mt-2 text-sm">Portal de Administraci├│n</p>
+                <p class="text-slate-400 mt-2 text-sm">Portal de Administración</p>
             </div>
             
             <form id="login-form" class="space-y-6">
                 <div>
-                    <label for="username" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Correo electr├│nico</label>
+                    <label for="username" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Correo electrónico</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" /></svg>
@@ -125,7 +125,7 @@
                 </div>
                 
                 <div>
-                    <label for="password" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Contrase├▒a</label>
+                    <label for="password" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Contraseña</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
@@ -142,7 +142,7 @@
                 
                 <button type="submit" id="login-btn"
                         class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 active:scale-[0.98]">
-                    <span id="login-btn-text">Iniciar Sesi├│n</span>
+                    <span id="login-btn-text">Iniciar Sesión</span>
                 </button>
             </form>
             
@@ -155,7 +155,7 @@
         </div>
     </div>
 
-    <!-- Panel de Administraci├│n -->
+    <!-- Panel de Administración -->
     <div id="admin-panel" class="hidden p-8">
         <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
         <div class="flex justify-between items-center mb-8">
@@ -168,10 +168,10 @@
                     Vista Colegios
                 </a>
                 <a id="link-publico" href="https://proyecto-biblioteca-funciona.pages.dev" target="_blank" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow mr-2">
-                    Vista P├║blica
+                    Vista Pública
                 </a>
                 <button onclick="firebase.auth().signOut().then(() => { sessionStorage.removeItem('bibliotech_user'); window.location.reload(); }).catch(() => { sessionStorage.removeItem('bibliotech_user'); window.location.reload(); });" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded shadow">
-                    Cerrar Sesi├│n
+                    Cerrar Sesión
                 </button>
             </div>
         </div>
@@ -179,7 +179,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <!-- Formulario -->
             <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <h3 id="form-title" class="text-xl font-semibold text-gray-700 mb-4">A├▒adir Libro</h3>
+                <h3 id="form-title" class="text-xl font-semibold text-gray-700 mb-4">Añadir Libro</h3>
                 <input type="hidden" id="book-id">
 
                 <div id="dynamic-fields"></div>
@@ -187,7 +187,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Imagen de Portada (Opcional)</label>
                     <input type="file" id="book-cover" accept="image/*" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <p class="text-xs text-gray-500 mt-1">Admite JPG, PNG, WebPÔÇª La imagen se comprime autom├íticamente.</p>
+                    <p class="text-xs text-gray-500 mt-1">Admite JPG, PNG, WebP… La imagen se comprime automáticamente.</p>
                 </div>
 
                 <div class="flex gap-2 mt-6">
@@ -206,8 +206,8 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Portada</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">T├¡tulo / Autor</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categor├¡a</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título / Autor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                         </tr>
