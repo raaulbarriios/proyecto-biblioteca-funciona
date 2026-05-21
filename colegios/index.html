@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BiblioTech ÔÇô Portal Colegios</title>
+    <title>BiblioTech – Portal Colegios</title>
     <meta name="description" content="Portal de reserva de libros para colegios de Algeciras.">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,7 +36,7 @@
             <div id="dynamic-login-fields"></div>
             <div id="login-error" class="error-msg hidden"></div>
             <button type="submit" class="btn-primary full-w" id="login-btn">
-                <span id="login-btn-text">Iniciar Sesi├│n</span>
+                <span id="login-btn-text">Iniciar Sesión</span>
                 <span id="login-spinner" class="btn-spinner hidden"></span>
             </button>
         </form>
@@ -61,7 +61,7 @@
             <p class="nav-section-label">Mi Panel</p>
             <ul>
                 <li class="nav-item active" data-view="dashboard"><i class='bx bxs-dashboard'></i><span>Dashboard</span></li>
-                <li class="nav-item" data-view="catalogo"><i class='bx bxs-book-open'></i><span>Cat├ílogo</span></li>
+                <li class="nav-item" data-view="catalogo"><i class='bx bxs-book-open'></i><span>Catálogo</span></li>
                 <li class="nav-item" data-view="mis-pedidos"><i class='bx bxs-time-five'></i><span>Mis Pedidos</span></li>
             </ul>
         </nav>
@@ -70,11 +70,11 @@
             <div class="user-info">
                 <div class="user-avatar" id="user-avatar-char">U</div>
                 <div class="user-details">
-                    <span id="current-user-name">ÔÇô</span>
-                    <small id="current-user-role">ÔÇô</small>
+                    <span id="current-user-name">–</span>
+                    <small id="current-user-role">–</small>
                 </div>
             </div>
-            <button id="logout-btn" title="Cerrar Sesi├│n"><i class='bx bx-log-out'></i></button>
+            <button id="logout-btn" title="Cerrar Sesión"><i class='bx bx-log-out'></i></button>
         </div>
     </aside>
 
@@ -111,15 +111,15 @@
                 </div>
             </section>
 
-            <!-- SCHOOL: CAT├üLOGO -->
+            <!-- SCHOOL: CATÁLOGO -->
             <section id="view-catalogo" class="view">
                 <div class="view-header">
                     <div class="filter-bar">
                         <div class="search-wrap-sm">
                             <i class='bx bx-search'></i>
-                            <input type="text" id="cat-search" placeholder="Buscar en el cat├ílogo...">
+                            <input type="text" id="cat-search" placeholder="Buscar en el catálogo...">
                         </div>
-                        <select id="cat-cat-filter"><option value="">Todas las categor├¡as</option></select>
+                        <select id="cat-cat-filter"><option value="">Todas las categorías</option></select>
                     </div>
                     <div class="realtime-badge"><span class="rt-dot"></span>Tiempo real</div>
                 </div>
@@ -176,7 +176,7 @@
 <script src="./script.js"></script>
 
 <style>
-/* ÔöÇÔöÇ BOOK DETAIL MODAL (Colegios) ÔöÇÔöÇ */
+/* ── BOOK DETAIL MODAL (Colegios) ── */
 .book-modal-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(15,23,42,0.82); backdrop-filter: blur(8px);
@@ -246,7 +246,7 @@
 <!-- MODAL DETALLE DE LIBRO -->
 <div id="book-modal" class="book-modal-overlay" onclick="if(event.target===this)closeBookModal()">
     <div class="book-modal-card">
-        <button class="book-modal-close" onclick="closeBookModal()" aria-label="Cerrar">Ô£ò</button>
+        <button class="book-modal-close" onclick="closeBookModal()" aria-label="Cerrar">✕</button>
         <div class="book-modal-cover" id="modal-cover"></div>
         <div class="book-modal-body">
             <div class="book-modal-badges" id="modal-badges"></div>
@@ -257,7 +257,7 @@
             <p class="book-modal-synopsis" id="modal-synopsis"></p>
             <div class="book-modal-status" id="modal-status"></div>
             <button class="book-modal-add-btn" id="modal-add-btn" onclick="handleModalAdd()">
-                <i class='bx bx-cart-add'></i> A├▒adir al carrito
+                <i class='bx bx-cart-add'></i> Añadir al carrito
             </button>
         </div>
     </div>
