@@ -1,471 +1,246 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo de Libros | Biblioteca Municipal de Algeciras</title>
-    <meta name="description" content="Consulta en tiempo real el catálogo de libros disponibles en la Biblioteca Municipal de Algeciras. Sin registro necesario.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <title>Panel Admin ÔÇô BiblioTech</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
+    <script>
+        // Protecci├│n de acceso admin
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(sessionStorage.getItem('bibliotech_user'));
+            const adminPanel = document.getElementById('admin-panel');
+            const loginScreen = document.getElementById('login-screen');
+            
+            if (user && user.role === 'admin') {
+                adminPanel.classList.remove('hidden');
+                loginScreen.classList.add('hidden');
+            } else {
+                adminPanel.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+                setupLoginLogic();
+            }
+        });
+
+        function setupLoginLogic() {
+            // Alternar visibilidad de contrase├▒a
+            const togglePwBtn = document.getElementById('toggle-pw');
+            const passwordInput = document.getElementById('password');
+            if (togglePwBtn && passwordInput) {
+                togglePwBtn.addEventListener('click', () => {
+                    const isPrivate = passwordInput.type === 'password';
+                    passwordInput.type = isPrivate ? 'text' : 'password';
+                    togglePwBtn.innerHTML = isPrivate 
+                        ? `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>`
+                        : `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
+                });
+            }
+
+            // L├│gica de formulario de login
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('username').value.toLowerCase().trim();
+                    const pass = document.getElementById('password').value;
+                    const errorMsg = document.getElementById('login-error');
+                    const loginBtnText = document.getElementById('login-btn-text');
+
+                    if (!email || !pass) {
+                        errorMsg.textContent = "Introduce correo y contrase├▒a";
+                        errorMsg.classList.remove('hidden');
+                        return;
+                    }
+
+                    loginBtnText.innerText = "Iniciando...";
+                    errorMsg.classList.add('hidden');
+
+                    try {
+                        // Iniciar sesi├│n en Firebase Auth
+                        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, pass);
+                        const userEmail = userCredential.user.email;
+
+                        // Validar rol de administrador
+                        if (!userEmail.includes('admin')) {
+                            errorMsg.textContent = "Acceso denegado. Esta p├ígina es solo para administradores.";
+                            errorMsg.classList.remove('hidden');
+                            loginBtnText.innerText = "Iniciar Sesi├│n";
+                            await firebase.auth().signOut();
+                            return;
+                        }
+
+                        // Guardar usuario en sessionStorage
+                        const currentUser = { name: 'Administrador', role: 'admin', email: userEmail };
+                        sessionStorage.setItem('bibliotech_user', JSON.stringify(currentUser));
+                        
+                        // Recargar la p├ígina para activar los snapshots de la base de datos
+                        window.location.reload();
+                    } catch (error) {
+                        console.error("Error Auth:", error);
+                        errorMsg.textContent = "Correo o contrase├▒a incorrectos.";
+                        errorMsg.classList.remove('hidden');
+                        loginBtnText.innerText = "Iniciar Sesi├│n";
+                    }
+                });
+            }
+        }
+    </script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root {
-            --navy: #0f172a;
-            --blue: #1e40af;
-            --accent: #3b82f6;
-            --green: #10b981;
-            --red: #ef4444;
-            --amber: #f59e0b;
-            --bg: #f0f4f8;
-            --card: #ffffff;
-            --text: #1e293b;
-            --muted: #64748b;
-            --border: #e2e8f0;
-        }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-        /* ── HEADER ── */
-        .site-header {
-            background: linear-gradient(135deg, var(--navy) 0%, #1e3a8a 100%);
-            color: #fff;
-            padding: 0 2rem;
-            position: sticky; top: 0; z-index: 100;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-        }
-        .header-inner {
-            max-width: 1400px; margin: 0 auto;
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 1rem; padding: 1rem 0;
-        }
-        .header-brand { display: flex; align-items: center; gap: 0.75rem; }
-        .header-brand img { height: 40px; filter: brightness(0) invert(1); }
-        .header-brand h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
-        .header-brand p { font-size: 0.75rem; color: #93c5fd; margin-top: 2px; }
-        .live-badge {
-            display: flex; align-items: center; gap: 0.5rem;
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-            padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
-        }
-        .live-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
-
-        /* ── STATS BAR ── */
-        .stats-bar {
-            background: var(--navy);
-            border-top: 1px solid rgba(255,255,255,0.08);
-            padding: 0.6rem 2rem;
-        }
-        .stats-bar-inner {
-            max-width: 1400px; margin: 0 auto;
-            display: flex; gap: 2rem;
-        }
-        .stat-chip { font-size: 0.78rem; color: #93c5fd; display: flex; align-items: center; gap: 0.4rem; }
-        .stat-chip strong { color: #fff; }
-
-        /* ── FILTERS ── */
-        .filters-section { max-width: 1400px; margin: 2rem auto 1.5rem; padding: 0 2rem; }
-        .filters-wrap {
-            background: var(--card); border-radius: 16px;
-            padding: 1.25rem 1.5rem;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            border: 1px solid var(--border);
-            display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;
-        }
-        .search-box {
-            flex: 1; min-width: 200px;
-            display: flex; align-items: center; gap: 0.5rem;
-            background: var(--bg); border: 1.5px solid var(--border);
-            border-radius: 10px; padding: 0.6rem 1rem;
-            transition: border-color 0.2s;
-        }
-        .search-box:focus-within { border-color: var(--accent); }
-        .search-box i { color: var(--muted); font-size: 1.2rem; }
-        .search-box input { border: none; background: none; outline: none; font-size: 0.9rem; color: var(--text); width: 100%; font-family: inherit; }
-        .cat-filter {
-            border: 1.5px solid var(--border); border-radius: 10px;
-            padding: 0.6rem 1rem; font-size: 0.9rem; font-family: inherit;
-            background: var(--bg); color: var(--text); cursor: pointer; outline: none;
-            transition: border-color 0.2s;
-        }
-        .cat-filter:focus { border-color: var(--accent); }
-        .filter-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .pill {
-            padding: 0.35rem 0.85rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600;
-            border: 1.5px solid var(--border); background: var(--bg); color: var(--muted);
-            cursor: pointer; transition: all 0.15s;
-        }
-        .pill:hover, .pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-        /* ── GRID ── */
-        .books-section { max-width: 1400px; margin: 0 auto; padding: 0 2rem 3rem; }
-        .section-heading {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 1.25rem;
-        }
-        .section-heading h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
-        .books-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 1.25rem;
-        }
-
-        /* ── CARD ── */
-        .book-card {
-            background: var(--card); border-radius: 14px; overflow: hidden;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .book-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.1); }
-        .book-cover {
-            width: 100%; height: 220px; overflow: hidden;
-            background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .book-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .book-cover-placeholder { font-size: 3.5rem; color: #cbd5e1; }
-        .book-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
-        .book-title { font-size: 0.95rem; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .book-author { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
-        .book-meta { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 10px; }
-        .badge {
-            font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
-        }
-        .badge-cat { background: #eff6ff; color: var(--blue); }
-        .badge-age { background: #f0fdf4; color: #166534; }
-        .book-synopsis { font-size: 0.78rem; color: var(--muted); line-height: 1.5; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 0.75rem; }
-        .book-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid var(--border); margin-top: auto; }
-        .status-badge {
-            display: inline-flex; align-items: center; gap: 0.3rem;
-            font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;
-        }
-        .status-available { background: #dcfce7; color: #166534; }
-        .status-out { background: #fee2e2; color: #991b1b; }
-        .stock-info { font-size: 0.72rem; color: var(--muted); }
-
-        /* ── EMPTY STATE ── */
-        .empty-state {
-            grid-column: 1/-1; text-align: center; padding: 4rem 2rem;
-            color: var(--muted);
-        }
-        .empty-state i { font-size: 4rem; display: block; margin-bottom: 1rem; color: #cbd5e1; }
-        .empty-state h3 { font-size: 1.2rem; color: var(--text); margin-bottom: 0.5rem; }
-
-        /* ── LOADING ── */
-        .loading-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 1.25rem; }
-        .skeleton { background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
-        .sk-img { height: 220px; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
-        .sk-body { padding: 1rem; }
-        .sk-line { height: 12px; background: #f1f5f9; border-radius: 6px; margin-bottom: 8px; animation: shimmer 1.4s infinite; }
-        .sk-line.short { width: 60%; }
-        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-        /* ── FOOTER ── */
-        .site-footer {
-            background: var(--navy); color: #64748b;
-            text-align: center; padding: 1.5rem;
-            font-size: 0.8rem; margin-top: 2rem;
-        }
-        .site-footer a { color: #93c5fd; text-decoration: none; }
-
-        @media (max-width: 640px) {
-            .header-inner { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
-            .books-grid { grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); }
-        }
-
-        /* ── BOOK DETAIL MODAL ── */
-        .book-modal-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(15,23,42,0.82); backdrop-filter: blur(8px);
-            z-index: 1000; align-items: center; justify-content: center; padding: 1rem;
-        }
-        .book-modal-overlay.active { display: flex; }
-        .book-modal-card {
-            background: #fff; border-radius: 24px; max-width: 780px; width: 100%;
-            display: grid; grid-template-columns: 260px 1fr;
-            max-height: 90vh; overflow: hidden; position: relative;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.45);
-            animation: modalIn 0.28s cubic-bezier(0.34,1.56,0.64,1);
-        }
-        @keyframes modalIn { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
-        .book-modal-cover {
-            background: #f1f5f9; display: flex; align-items: center;
-            justify-content: center; overflow: hidden; min-height: 400px;
-        }
-        .book-modal-cover img { width: 100%; height: 100%; object-fit: cover; }
-        .book-modal-cover .bx { font-size: 6rem; color: #cbd5e1; }
-        .book-modal-body {
-            padding: 2rem; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 0.9rem;
-        }
-        .book-modal-close {
-            position: absolute; top: 1rem; right: 1rem;
-            width: 38px; height: 38px; border-radius: 50%;
-            background: rgba(0,0,0,0.08); border: none; cursor: pointer;
-            font-size: 1.1rem; font-weight: 700; color: #475569;
-            display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s, transform 0.15s; z-index: 10;
-        }
-        .book-modal-close:hover { background: rgba(0,0,0,0.16); transform: scale(1.1); }
-        .book-modal-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .book-modal-title { font-size: 1.55rem; font-weight: 800; color: var(--text); line-height: 1.2; margin: 0; }
-        .book-modal-author { font-size: 1rem; color: var(--muted); margin: 0; }
-        .book-modal-meta { font-size: 0.82rem; color: var(--muted); }
-        .book-modal-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
-        .book-modal-synopsis { font-size: 0.9rem; color: #475569; line-height: 1.75; flex: 1; margin: 0; }
-        .book-modal-status {
-            display: flex; align-items: center; gap: 0.6rem;
-            font-weight: 700; font-size: 0.95rem;
-            padding: 0.75rem 1rem; border-radius: 10px; margin-top: auto;
-        }
-        .book-modal-status.available { background: #ecfdf5; color: #059669; }
-        .book-modal-status.out { background: #fef2f2; color: #dc2626; }
-        .book-card { cursor: pointer; transition: transform 0.18s, box-shadow 0.18s; }
-        .book-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); }
-        @media (max-width: 640px) {
-            .book-modal-card { grid-template-columns: 1fr; }
-            .book-modal-cover { min-height: 220px; }
-            .book-modal-body { padding: 1.25rem; }
-            .book-modal-title { font-size: 1.2rem; }
-        }
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 font-sans antialiased min-h-screen">
 
-<!-- HEADER -->
-<header class="site-header">
-    <div class="header-inner">
-        <div class="header-brand">
-            <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Ayuntamiento de Algeciras">
-            <div>
-                <h1>BiblioTech · Catálogo</h1>
-                <p>Biblioteca Municipal de Algeciras</p>
-            </div>
-        </div>
-        <div class="live-badge">
-            <span class="live-dot"></span> Actualizado en tiempo real
-        </div>
-    </div>
-</header>
-
-<!-- STATS BAR -->
-<div class="stats-bar">
-    <div class="stats-bar-inner">
-        <div class="stat-chip"><i class='bx bx-book'></i> <strong id="stat-total">–</strong> títulos en catálogo</div>
-        <div class="stat-chip"><i class='bx bx-check-circle'></i> <strong id="stat-disp">–</strong> disponibles ahora</div>
-        <div class="stat-chip"><i class='bx bx-x-circle'></i> <strong id="stat-agot">–</strong> agotados</div>
-    </div>
-</div>
-
-<!-- FILTERS -->
-<div class="filters-section">
-    <div class="filters-wrap">
-        <div class="search-box">
-            <i class='bx bx-search'></i>
-            <input type="text" id="search-input" placeholder="Buscar por título, autor, editorial…" autocomplete="off">
-        </div>
-        <select class="cat-filter" id="cat-filter">
-            <option value="">Todas las categorías</option>
-        </select>
-        <div class="filter-pills">
-            <button class="pill active" data-filter="all">Todos</button>
-            <button class="pill" data-filter="available">Disponibles</button>
-            <button class="pill" data-filter="out">Agotados</button>
-        </div>
-    </div>
-</div>
-
-<!-- BOOKS -->
-<div class="books-section">
-    <div class="section-heading">
-        <h2 id="results-count">Cargando catálogo…</h2>
-    </div>
-    <!-- Skeletons mientras carga -->
-    <div class="loading-grid" id="loading-grid">
-        ${Array(8).fill('<div class="skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line"></div></div></div>').join('')}
-    </div>
-    <div class="books-grid" id="books-grid" style="display:none;"></div>
-</div>
-
-<!-- FOOTER -->
-<footer class="site-footer">
-    Biblioteca Municipal de Algeciras
-</footer>
-
-<script>
-    let allBooks = [];
-    let searchQuery = '';
-    let categoryFilter = '';
-    let availFilter = 'all';
-
-    // Cargar en tiempo real desde Firestore
-    db.collection('Libros').onSnapshot((snapshot) => {
-        allBooks = [];
-        snapshot.forEach(doc => allBooks.push({ id: doc.id, ...doc.data() }));
-        populateCategories();
-        renderBooks();
-        updateStats();
-        // Ocultar skeleton, mostrar grid
-        document.getElementById('loading-grid').style.display = 'none';
-        document.getElementById('books-grid').style.display = 'grid';
-    }, (err) => {
-        document.getElementById('loading-grid').innerHTML = '<p style="color:#ef4444;padding:2rem;">Error al cargar el catálogo. Inténtalo más tarde.</p>';
-    });
-
-    function populateCategories() {
-        const sel = document.getElementById('cat-filter');
-        const cats = [...new Set(allBooks.map(b => b.categoria).filter(Boolean))].sort();
-        const current = sel.value;
-        sel.innerHTML = '<option value="">Todas las categorías</option>' +
-            cats.map(c => `<option value="${c}" ${c===current?'selected':''}>${c}</option>`).join('');
-    }
-
-    function normalizar(texto) {
-        return (texto || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    }
-
-    function filtered() {
-        return allBooks.filter(b => {
-            const q = normalizar(searchQuery);
-            const matchQ = !q ||
-                normalizar(b.titulo).includes(q) ||
-                normalizar(b.autor).includes(q) ||
-                normalizar(b.editorial).includes(q) ||
-                normalizar(b.sinopsis).includes(q);
-            const matchCat = !categoryFilter || b.categoria === categoryFilter;
-            const matchAvail = availFilter === 'all' ||
-                (availFilter === 'available' && b.disponibles > 0) ||
-                (availFilter === 'out' && b.disponibles <= 0);
-            return matchQ && matchCat && matchAvail;
-        });
-    }
-
-    function renderBooks() {
-        const grid = document.getElementById('books-grid');
-        const books = filtered();
-        const count = document.getElementById('results-count');
-        count.textContent = books.length === 0
-            ? 'Sin resultados'
-            : `${books.length} libro${books.length!==1?'s':''} encontrado${books.length!==1?'s':''}`;
-
-        if (books.length === 0) {
-            grid.innerHTML = `<div class="empty-state"><i class='bx bx-book-open'></i><h3>No hay libros que coincidan</h3><p>Prueba con otros términos de búsqueda o cambia los filtros.</p></div>`;
-            return;
-        }
-
-        grid.innerHTML = books.map(book => {
-            const disponible = book.disponibles > 0;
-            const coverHtml = book.portada_url
-                ? `<img src="${book.portada_url}" alt="Portada de ${book.titulo}" loading="lazy">`
-                : `<i class='bx bx-book-alt book-cover-placeholder'></i>`;
-
-            return `
-            <article class="book-card" onclick="openBookModal('${book.id}')">
-                <div class="book-cover">${coverHtml}</div>
-                <div class="book-body">
-                    <div class="book-title" title="${book.titulo||''}">${book.titulo||'Sin título'}</div>
-                    <div class="book-author">${book.autor||'Autor desconocido'}</div>
-                    <div class="book-meta">
-                        ${book.categoria ? `<span class="badge badge-cat">${book.categoria}</span>` : ''}
-                        ${book.edad_recomendada ? `<span class="badge badge-age">${book.edad_recomendada}</span>` : ''}
-                    </div>
-                    ${book.sinopsis ? `<p class="book-synopsis">${book.sinopsis}</p>` : ''}
-                    <div class="book-footer">
-                        <span class="status-badge ${disponible ? 'status-available' : 'status-out'}">
-                            <i class='bx ${disponible ? 'bx-check-circle' : 'bx-x-circle'}'></i>
-                            ${disponible ? 'Disponible' : 'Agotado'}
-                        </span>
-                        <span class="stock-info">${book.disponibles}/${book.total||0} ej.</span>
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="hidden min-h-screen flex items-center justify-center bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-950 px-4 relative overflow-hidden">
+        <!-- Orbes decorativos difuminados -->
+        <div class="absolute w-[500px] h-[500px] -top-40 -left-40 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute w-[500px] h-[500px] -bottom-40 -right-40 bg-violet-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        
+        <div class="max-w-md w-full bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 p-8 rounded-2xl shadow-2xl relative z-10">
+            <div class="text-center mb-8">
+                <div class="flex justify-center mb-4">
+                    <div class="p-3 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl shadow-inner">
+                        <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Ayuntamiento de Algeciras" class="w-12 h-auto filter invert opacity-90">
                     </div>
                 </div>
-            </article>`;
-        }).join('');
-    }
-
-    function updateStats() {
-        const disp = allBooks.filter(b => b.disponibles > 0).length;
-        const agot = allBooks.length - disp;
-        document.getElementById('stat-total').textContent = allBooks.length;
-        document.getElementById('stat-disp').textContent = disp;
-        document.getElementById('stat-agot').textContent = agot;
-    }
-
-    // Eventos de filtros
-    document.getElementById('search-input').addEventListener('input', (e) => { searchQuery = e.target.value; renderBooks(); });
-    document.getElementById('cat-filter').addEventListener('change', (e) => { categoryFilter = e.target.value; renderBooks(); });
-    document.querySelectorAll('.pill[data-filter]').forEach(pill => {
-        pill.addEventListener('click', () => {
-            document.querySelectorAll('.pill[data-filter]').forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
-            availFilter = pill.dataset.filter;
-            renderBooks();
-        });
-    });
-
-    function openBookModal(bookId) {
-        const book = allBooks.find(b => b.id === bookId);
-        if (!book) return;
-        const disponible = book.disponibles > 0;
-
-        document.getElementById('modal-cover').innerHTML = book.portada_url
-            ? `<img src="${book.portada_url}" alt="${(book.titulo||'').replace(/"/g,'&quot;')}">`
-            : `<i class='bx bx-book-alt'></i>`;
-
-        document.getElementById('modal-title').textContent = book.titulo || 'Sin título';
-        document.getElementById('modal-author').textContent = `Por ${book.autor || 'Autor desconocido'}`;
-
-        const meta = [book.editorial, book.edad_recomendada ? `Edad recomendada: ${book.edad_recomendada}` : ''].filter(Boolean).join(' · ');
-        const metaEl = document.getElementById('modal-meta');
-        metaEl.textContent = meta;
-        metaEl.style.display = meta ? '' : 'none';
-
-        document.getElementById('modal-badges').innerHTML = [
-            book.categoria ? `<span class="badge badge-cat">${book.categoria}</span>` : '',
-            book.edad_recomendada ? `<span class="badge badge-age">${book.edad_recomendada}</span>` : ''
-        ].join('');
-
-        document.getElementById('modal-synopsis').textContent = book.sinopsis || 'Sin sinopsis disponible para este libro.';
-
-        const statusEl = document.getElementById('modal-status');
-        statusEl.className = `book-modal-status ${disponible ? 'available' : 'out'}`;
-        statusEl.innerHTML = `<i class='bx ${disponible ? 'bx-check-circle' : 'bx-x-circle'}'></i>
-            ${disponible ? 'Disponible' : 'Agotado'}
-            <span style="font-weight:400;margin-left:.5rem;font-size:.85rem;opacity:.8">(${book.disponibles} de ${book.total||0} ej.)</span>`;
-
-        document.getElementById('book-modal').classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeBookModal() {
-        document.getElementById('book-modal').classList.remove('active');
-        document.body.style.overflow = '';
-    }
-
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBookModal(); });
-</script>
-
-<!-- MODAL DETALLE DE LIBRO -->
-<div id="book-modal" class="book-modal-overlay" onclick="if(event.target===this)closeBookModal()">
-    <div class="book-modal-card">
-        <button class="book-modal-close" onclick="closeBookModal()" aria-label="Cerrar">✕</button>
-        <div class="book-modal-cover" id="modal-cover"></div>
-        <div class="book-modal-body">
-            <div class="book-modal-badges" id="modal-badges"></div>
-            <h2 class="book-modal-title" id="modal-title"></h2>
-            <p class="book-modal-author" id="modal-author"></p>
-            <p class="book-modal-meta" id="modal-meta"></p>
-            <hr class="book-modal-divider">
-            <p class="book-modal-synopsis" id="modal-synopsis"></p>
-            <div class="book-modal-status" id="modal-status"></div>
+                <h1 class="text-3xl font-extrabold text-white tracking-tight">BiblioTech</h1>
+                <p class="text-slate-400 mt-2 text-sm">Portal de Administraci├│n</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="username" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Correo electr├│nico</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" /></svg>
+                        </span>
+                        <input type="email" id="username" placeholder="admin@correo.com" autocomplete="email" required
+                               class="w-full pl-10 pr-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Contrase├▒a</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        </span>
+                        <input type="password" id="password" placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó" required
+                               class="w-full pl-10 pr-10 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        <button type="button" id="toggle-pw" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300">
+                            <svg id="eye-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="login-error" class="hidden text-sm bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-xl"></div>
+                
+                <button type="submit" id="login-btn"
+                        class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 active:scale-[0.98]">
+                    <span id="login-btn-text">Iniciar Sesi├│n</span>
+                </button>
+            </form>
+            
+            <div class="mt-8 pt-6 border-t border-slate-800/60 flex justify-center">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    Panel Seguro (Admin)
+                </span>
+            </div>
         </div>
     </div>
-</div>
 
+    <!-- Panel de Administraci├│n -->
+    <div id="admin-panel" class="hidden p-8">
+        <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+                <img src="https://www.algeciras.es/export/sites/algeciras/.galleries/estatico/Logo-Algeciras-1-tinta.png" alt="Algeciras" class="w-10 h-auto mr-3">
+                Gestor del Inventario (Admin)
+            </h1>
+            <div>
+                <a id="link-colegios" href="https://proyecto-biblioteca-funciona-colegios.pages.dev" target="_blank" class="inline-block bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded shadow mr-2">
+                    Vista Colegios
+                </a>
+                <a id="link-publico" href="https://proyecto-biblioteca-funciona.pages.dev" target="_blank" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow mr-2">
+                    Vista P├║blica
+                </a>
+                <button onclick="firebase.auth().signOut().then(() => { sessionStorage.removeItem('bibliotech_user'); window.location.reload(); }).catch(() => { sessionStorage.removeItem('bibliotech_user'); window.location.reload(); });" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded shadow">
+                    Cerrar Sesi├│n
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <!-- Formulario -->
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <h3 id="form-title" class="text-xl font-semibold text-gray-700 mb-4">A├▒adir Libro</h3>
+                <input type="hidden" id="book-id">
+
+                <div id="dynamic-fields"></div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Imagen de Portada (Opcional)</label>
+                    <input type="file" id="book-cover" accept="image/*" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <p class="text-xs text-gray-500 mt-1">Admite JPG, PNG, WebPÔÇª La imagen se comprime autom├íticamente.</p>
+                </div>
+
+                <div class="flex gap-2 mt-6">
+                    <button id="btn-save" onclick="guardarLibro()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors shadow-sm">
+                        Guardar
+                    </button>
+                    <button onclick="limpiarFormulario()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition-colors">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de Libros -->
+            <div class="md:col-span-2 overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Portada</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">T├¡tulo / Autor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categor├¡a</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-libros" class="divide-y divide-gray-200">
+                        <!-- Content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Registro de Reservas -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 mt-12 border-t pt-8">Registro de Reservas de Colegios</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <thead class="bg-gray-800 text-white">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Colegio</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Libro</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Cantidad</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-reservas" class="divide-y divide-gray-200">
+                    <!-- Reservas Content -->
+                </tbody>
+            </table>
+        </div>
+        </div>
+    </div> <!-- Fin de #admin-panel -->
+
+    <script src="gestor_bd.js"></script>
 </body>
 </html>
